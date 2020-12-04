@@ -1,18 +1,23 @@
 ﻿using Arbiter.Core;
-using Arbiter.Core.Commands;
+using Autofac;
 using System;
 
 namespace Arbiter
 {
     class Program
     {
+        private readonly CommandBuilder _commandBuilder;
+
         static int Main(string[] args)
         {
-            ICommand command;
+            Program program;
             try
             {
-                var builder = new CommandBuilder(new RepositoryReader(new PowerShellInvoker()), new FileReader());
-                command = builder.ProcessArguments(args);
+                var builder = new ContainerBuilder();
+                var assemblies = new[] { typeof(Program).Assembly, typeof(CommandBuilder).Assembly };
+                builder.RegisterAssemblyTypes(assemblies).PublicOnly().AsSelf().AsImplementedInterfaces();
+                var container = builder.Build();
+                program = container.Resolve<Program>();
             }
             catch (Exception e)
             {
@@ -21,6 +26,17 @@ namespace Arbiter
                 return -1;
             }
 
+            return program.Run(args);
+        }
+
+        public Program(CommandBuilder commandBuilder)
+        {
+            _commandBuilder = commandBuilder;
+        }
+
+        public int Run(string[] args)
+        {
+            var command = _commandBuilder.ProcessArguments(args);
             return command.Execute();
         }
     }

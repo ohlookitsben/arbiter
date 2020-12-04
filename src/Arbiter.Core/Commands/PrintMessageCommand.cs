@@ -1,12 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Arbiter.Core.Commands
 {
     public class PrintMessageCommand : ICommand
     {
-        public string Message { get; set; }
+        public string Message { get; }
+
+        public PrintMessageCommand(string message)
+        {
+            Message = message;
+        }
 
         public int Execute()
         {

@@ -1,16 +1,17 @@
 ﻿using Arbiter.Core.Commands;
-using System.IO;
 
 namespace Arbiter.Core
 {
     public class CommandBuilder
     {
         private readonly IRepositoryReader _repositoryReader;
-        private readonly IFileReader _fileReader;
+        private readonly CommandFactory _factory;
+        private readonly IFileSystem _fileReader;
 
-        public CommandBuilder(IRepositoryReader repositoryReader, IFileReader fileReader)
+        public CommandBuilder(IRepositoryReader repositoryReader, CommandFactory factory, IFileSystem fileReader)
         {
             _repositoryReader = repositoryReader;
+            _factory = factory;
             _fileReader = fileReader;
         }
 
@@ -18,61 +19,43 @@ namespace Arbiter.Core
         {
             if (args.Length != 4)
             {
-                return new UsageCommand();
+                return _factory.CreateCommand<UsageCommand>();
             }
 
             if (!_repositoryReader.GitExists())
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"No git executable could be found"
-                };
+                return _factory.CreatePrintMessageCommand($"No git executable could be found");
             }
 
             var settings = new RunSettings(args);
             if (!_fileReader.Exists(settings.Solution))
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"No solution file could be found at: {settings.Solution}"
-                };
+                return _factory.CreatePrintMessageCommand($"No solution file could be found at: {settings.Solution}");
             }
 
             settings.WorkingDirectory = _fileReader.GetDirectory(settings.Solution);
             _repositoryReader.WorkingDirectory = settings.WorkingDirectory;
             if (!_repositoryReader.RepositoryExists())
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"No repository could be found at: {settings.WorkingDirectory}"
-                };
+                return _factory.CreatePrintMessageCommand($"No repository could be found at: {settings.WorkingDirectory}");
             }
 
             if (!_repositoryReader.CommitExists(settings.FromCommit))
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"No commit could be found: {settings.FromCommit}"
-                };
+                return _factory.CreatePrintMessageCommand($"No commit could be found: {settings.FromCommit}");
             }
 
             if (!_repositoryReader.CommitExists(settings.ToCommit))
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"No commit could be found: {settings.ToCommit}"
-                };
+                return _factory.CreatePrintMessageCommand($"No commit could be found: {settings.ToCommit}");
             }
 
             if (!_repositoryReader.CommitIsAncestor(settings.ToCommit, settings.FromCommit))
             {
-                return new PrintMessageCommand
-                {
-                    Message = $"The commit {settings.FromCommit} is not an ancestor of {settings.ToCommit}"
-                };
+                return _factory.CreatePrintMessageCommand($"The commit {settings.FromCommit} is not an ancestor of {settings.ToCommit}");
             }
 
-            return new BuildOutputCommand(settings, new RepositoryReader(new PowerShellInvoker()));
+            return _factory.CreateBuildOutputCommand(settings);
         }
     }
 }

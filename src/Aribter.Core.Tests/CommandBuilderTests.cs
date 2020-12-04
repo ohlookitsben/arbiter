@@ -1,5 +1,6 @@
 ﻿using Arbiter.Core;
 using Arbiter.Core.Commands;
+using Autofac;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -10,15 +11,22 @@ namespace Aribter.Core.Tests
     public class CommandBuilderTests
     {
         private CommandBuilder _builder;
-        private Mock<IFileReader> _fileReader;
+        private Mock<IFileSystem> _fileReader;
         private Mock<IRepositoryReader> _repositoryReader;
 
         [SetUp]
         public void Setup()
         {
-            _fileReader = new Mock<IFileReader>();
+            _fileReader = new Mock<IFileSystem>();
             _repositoryReader = new Mock<IRepositoryReader>();
-            _builder = new CommandBuilder(_repositoryReader.Object, _fileReader.Object);
+            var container = ContainerHelper.ConfigureContainer();
+            var scope = container.BeginLifetimeScope(c =>
+            {
+                c.RegisterInstance(_fileReader.Object);
+                c.RegisterInstance(_repositoryReader.Object);
+            });
+
+            _builder = scope.Resolve<CommandBuilder>();
         }
 
         [Test]
