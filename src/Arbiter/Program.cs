@@ -4,11 +4,11 @@ using System;
 
 namespace Arbiter
 {
-    class Program
+    internal class Program
     {
         private readonly CommandBuilder _commandBuilder;
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             Program program;
             try

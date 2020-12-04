@@ -44,7 +44,7 @@ namespace Aribter.Core.Tests
             var root = document.SelectNodes("/NUnitProject");
             Assert.AreEqual(1, root.Count, "The project should have an NUnitProject node at the root.");
             var settings = document.SelectNodes("/NUnitProject/Settings");
-            Assert.AreEqual(1, settings.Count, "The project should have a Settings node under the NUnitProject node."); 
+            Assert.AreEqual(1, settings.Count, "The project should have a Settings node under the NUnitProject node.");
             var config = document.SelectNodes("/NUnitProject/Config");
             Assert.AreEqual(1, config.Count, "The project should have a Config node under the NUnitProject node.");
         }

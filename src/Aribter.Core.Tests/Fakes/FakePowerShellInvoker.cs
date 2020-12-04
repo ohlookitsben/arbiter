@@ -37,7 +37,7 @@ namespace Aribter.Core.Tests.Fakes
         public static List<PSObject> CreateResponse(params object[] baseObjects)
         {
             var responses = new List<PSObject>();
-            foreach (var baseObject in baseObjects)
+            foreach (object baseObject in baseObjects)
             {
                 responses.Add(new PSObject(baseObject));
             }

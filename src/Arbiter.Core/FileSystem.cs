@@ -4,15 +4,9 @@ namespace Arbiter.Core
 {
     public class FileSystem : IFileSystem
     {
-        public bool Exists(string path)
-        {
-            return File.Exists(path);
-        }
+        public bool Exists(string path) => File.Exists(path);
 
-        public string GetDirectory(string solution)
-        {
-            return new FileInfo(solution).Directory.FullName;
-        }
+        public string GetDirectory(string solution) => new FileInfo(solution).Directory.FullName;
 
         public void WriteFile(string path, FileMode mode, string contents)
         {

@@ -11,10 +11,10 @@ namespace Aribter.Core.Tests.Fakes
 
         public bool Exists(string path) => throw new NotImplementedException();
         public string GetDirectory(string solution) => throw new NotImplementedException();
-        public void WriteFile(string path, FileMode mode, string contents) 
-        { 
-            File = contents; 
-            FilePath = path; 
+        public void WriteFile(string path, FileMode mode, string contents)
+        {
+            File = contents;
+            FilePath = path;
         }
     }
 }

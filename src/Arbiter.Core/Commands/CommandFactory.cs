@@ -11,19 +11,10 @@ namespace Arbiter.Core.Commands
             _scope = scope;
         }
 
-        public PrintMessageCommand CreatePrintMessageCommand(string message)
-        {
-            return _scope.Resolve<PrintMessageCommand>(new TypedParameter(typeof(string), message));
-        }
+        public PrintMessageCommand CreatePrintMessageCommand(string message) => _scope.Resolve<PrintMessageCommand>(new TypedParameter(typeof(string), message));
 
-        public BuildOutputCommand CreateBuildOutputCommand(RunSettings settings)
-        {
-            return _scope.Resolve<BuildOutputCommand>(new TypedParameter(typeof(RunSettings), settings));
-        }
+        public BuildOutputCommand CreateBuildOutputCommand(RunSettings settings) => _scope.Resolve<BuildOutputCommand>(new TypedParameter(typeof(RunSettings), settings));
 
-        public ICommand CreateCommand<T>() where T : ICommand
-        {
-            return _scope.Resolve<T>();
-        }
+        public ICommand CreateCommand<T>() where T : ICommand => _scope.Resolve<T>();
     }
 }
