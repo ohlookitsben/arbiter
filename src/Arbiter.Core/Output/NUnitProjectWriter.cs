@@ -7,7 +7,7 @@ namespace Arbiter.Core.Output
 {
     public class NUnitProjectWriter
     {
-        private const string ProjectTemplate = @"<NUnitProject>
+        private const string _projectTemplate = @"<NUnitProject>
     <Settings activeConfig=""Arbiter"" />
     <Config name=""Arbiter"">
     {0}
@@ -15,7 +15,7 @@ namespace Arbiter.Core.Output
 </NUnitProject>
 ";
 
-        private const string AssemblyTemplate = @"<assembly path=""{0}"" />";
+        private const string _assemblyTemplate = @"<assembly path=""{0}"" />";
 
         private readonly IFileSystem _fileSystem;
 
@@ -26,9 +26,9 @@ namespace Arbiter.Core.Output
 
         public void WriteProject(string path, IEnumerable<string> assemblies)
         {
-            var assemblyTags = assemblies.Select(a => string.Format(AssemblyTemplate, a));
+            var assemblyTags = assemblies.Select(a => string.Format(_assemblyTemplate, a));
             string assemblyBlock = string.Join($"    {Environment.NewLine}", assemblyTags);
-            string project = string.Format(ProjectTemplate, assemblyBlock);
+            string project = string.Format(_projectTemplate, assemblyBlock);
 
             _fileSystem.WriteFile(path, FileMode.Truncate, project);
         }
