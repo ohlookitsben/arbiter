@@ -25,7 +25,7 @@ namespace Aribter.Core.Tests
         }
 
         [Test]
-        public void GitExists_GitIsFound_ReturnsTrue()
+        public void GitExists_GitFound_ReturnsTrue()
         {
             _invoker.SetResponse(Responses.GitFound);
 
@@ -40,6 +40,46 @@ namespace Aribter.Core.Tests
             _invoker.SetResponse(Responses.GitNotFound);
 
             bool result = _reader.GitExists();
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void GitExists_ResultIsEmpty_ReturnsFalse()
+        {
+            _invoker.ResultIsEmpty = true;
+
+            bool result = _reader.GitExists();
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CommitExists_CommitFound_ReturnsTrue()
+        {
+            _invoker.SetResponse(Responses.CommitFound);
+
+            bool result = _reader.CommitExists(Responses.ExpectedCommit);
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void CommitExists_CommitNotFound_ReturnsFalse()
+        {
+            _invoker.SetResponse(Responses.CommitNotFound);
+
+            bool result = _reader.CommitExists(Responses.ExpectedCommit);
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CommitExists_ResultIsEmpty_ReturnsFalse()
+        {
+            _invoker.ResultIsEmpty = true;
+
+            bool result = _reader.CommitExists(Responses.ExpectedCommit);
 
             Assert.IsFalse(result);
         }

@@ -14,6 +14,9 @@ namespace Arbiter.Core
         public RepositoryReader(IPowerShellInvoker invoker)
         {
             _invoker = invoker;
+
+            // TODO: Set it to the solution directory to ensure we're inside a repository.
+            _invoker.WorkingDirectory = @"C:\Users\ben.wiles\source\repos\Arbiter";
         }
 
         public bool GitExists()
@@ -31,18 +34,21 @@ namespace Arbiter.Core
         public bool CommitExists(string commit)
         {
             string script = $"git cat-file -t {commit}";
-            using (var powershell = PowerShell.Create())
+            var result = _invoker.Invoke(script).SingleOrDefault();
+            if (result == null)
             {
-                powershell.AddScript(script);
-
-                var results = powershell.Invoke();
+                return false;
             }
 
-            return true;
+            return result.BaseObject.ToString() == "commit";
         }
 
         public List<string> ListChangedFiles(string fromCommit, string toCommit)
         {
+            string script = $"git diff --name-only {fromCommit} {toCommit}";
+            var results = _invoker.Invoke(script);
+
+
             return new List<string>();
         }
     }
