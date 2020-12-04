@@ -8,5 +8,10 @@ namespace Arbiter.Core
         {
             return File.Exists(path);
         }
+
+        public string GetDirectory(string solution)
+        {
+            return new FileInfo(solution).Directory.FullName;
+        }
     }
 }

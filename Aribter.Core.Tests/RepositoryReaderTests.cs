@@ -1,12 +1,6 @@
 ﻿using Arbiter.Core;
 using Aribter.Core.Tests.Fakes;
-using Moq;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Aribter.Core.Tests.Fakes.FakePowerShellInvoker;
 
 namespace Aribter.Core.Tests
@@ -85,10 +79,33 @@ namespace Aribter.Core.Tests
         }
 
         [Test]
-        public void ListChangedFiles()
+        public void ListChangedFiles_ChangedFiles_ListsFiles()
         {
-            var reader = new RepositoryReader(new PowerShellInvoker());
-            var files = reader.ListChangedFiles("e15dbcda142dff9a89f2d854a79096e6926bcc35", "e15dbcda142dff9a89f2d854a79096e6926bcc35");
+            _invoker.InvokeResult = Responses.ChangedFiles;
+
+            var files = _reader.ListChangedFiles(Responses.ExpectedCommit, Responses.ExpectedToCommit);
+
+            CollectionAssert.AreEqual(Responses.ExpectedChangedFiles, files);
+        }
+
+        [Test]
+        public void ListChangedFiles_ChangedFilesHaveDuplicates_ListsFilesWithoutDuplicates()
+        {
+            _invoker.InvokeResult = Responses.ChangedFilesWithDuplicates;
+
+            var files = _reader.ListChangedFiles(Responses.ExpectedCommit, Responses.ExpectedToCommit);
+
+            CollectionAssert.AreEqual(Responses.ExpectedChangedFiles, files);
+        }
+
+        [Test]
+        public void ListChangedFilesNoChangedFiles_EmptyList()
+        {
+            _invoker.InvokeResult = Responses.NoChangedFiles;
+
+            var files = _reader.ListChangedFiles(Responses.ExpectedCommit, Responses.ExpectedToCommit);
+
+            CollectionAssert.IsEmpty(files);
         }
     }
 }

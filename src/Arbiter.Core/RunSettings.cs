@@ -23,5 +23,6 @@ namespace Arbiter.Core
         public string FromCommit { get; set; }
         public string ToCommit { get; set; }
         public string Output { get; set; }
+        public string WorkingDirectory { get; set; }
     }
 }

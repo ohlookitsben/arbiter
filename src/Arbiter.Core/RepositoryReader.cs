@@ -7,18 +7,17 @@ using System.Text.RegularExpressions;
 
 namespace Arbiter.Core
 {
-    public class RepositoryReader
+    public class RepositoryReader : IRepositoryReader
     {
         private readonly IPowerShellInvoker _invoker;
+
+        public string WorkingDirectory { get => _invoker.WorkingDirectory; set => _invoker.WorkingDirectory = value; }
 
         public RepositoryReader(IPowerShellInvoker invoker)
         {
             _invoker = invoker;
-
-            // TODO: Set it to the solution directory to ensure we're inside a repository.
-            _invoker.WorkingDirectory = @"C:\Users\ben.wiles\source\repos\Arbiter";
         }
-        
+
         public bool GitExists()
         {
             string script = $"git --version";
@@ -40,7 +39,7 @@ namespace Arbiter.Core
                 return false;
             }
 
-            return ((int) result.BaseObject) == 0;
+            return ((int)result.BaseObject) == 0;
         }
 
         public bool RepositoryExists()

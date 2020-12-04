@@ -1,6 +1,7 @@
 ﻿using Arbiter.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management.Automation;
 
 namespace Aribter.Core.Tests.Fakes
@@ -44,11 +45,6 @@ namespace Aribter.Core.Tests.Fakes
             return responses;
         }
 
-        public static List<PSObject> EmptyResponse()
-        {
-            return new List<PSObject>();
-        }
-
         public static class Responses
         {
             public static string ExpectedCommit = "fe972a89a56006182f8836fe1dc338b39d889792a";
@@ -61,15 +57,19 @@ namespace Aribter.Core.Tests.Fakes
                 "src/Arbiter.Core/RepositoryReader.cs"
             };
 
+            public static List<PSObject> Empty = new List<PSObject>();
             public static List<PSObject> GitFound = CreateResponse("git version 2.2.8.0.windows.1");
-            public static List<PSObject> GitNotFound = EmptyResponse();
+            public static List<PSObject> GitNotFound = Empty;
             public static List<PSObject> CommitFound = CreateResponse("commit");
-            public static List<PSObject> CommitNotFound = EmptyResponse();
+            public static List<PSObject> CommitNotFound = Empty;
             public static List<PSObject> ChangedFiles = CreateResponse(ExpectedChangedFiles);
-            public static List<PSObject> RepositoryFound = CreateResponse();
-            public static List<PSObject> RepositoryNotFound = EmptyResponse();
+            public static List<PSObject> ChangedFilesWithDuplicates = CreateResponse(ExpectedChangedFiles.Concat(ExpectedChangedFiles).ToArray());
+            public static List<PSObject> RepositoryFound = CreateResponse(@"On branch master
+nothing to commit, working tree clean");
+            public static List<PSObject> RepositoryNotFound = Empty;
             public static List<PSObject> CommitIsAncestor = CreateResponse(0);
             public static List<PSObject> CommitNotAncestor = CreateResponse(1);
+            public static List<PSObject> NoChangedFiles = Empty;
         }
     }
 }
