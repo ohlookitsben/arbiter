@@ -7,7 +7,7 @@ namespace Aribter.Core.Tests.Fakes
 {
     public class FakePowerShellInvoker : IPowerShellInvoker
     {
-        public Dictionary<string, List<PSObject>> InvokeResults { get; set; } = new Dictionary<string, List<PSObject>>();
+        public List<PSObject> InvokeResult { get; set; } = new List<PSObject>();
 
         public Exception InvokeThrows { get; set; }
 
@@ -30,34 +30,18 @@ namespace Aribter.Core.Tests.Fakes
                 return new List<PSObject>();
             }
 
-            if (!InvokeResults.ContainsKey(script))
+            return InvokeResult;
+        }
+
+        public static List<PSObject> CreateResponse(params object[] baseObjects)
+        {
+            var responses = new List<PSObject>();
+            foreach (var baseObject in baseObjects)
             {
-                throw new ArgumentException($"Unable to find an invoke result matching the script: {script}");
+                responses.Add(new PSObject(baseObject));
             }
 
-            return InvokeResults[script];
-        }
-
-        public void SetResponse((string, List<PSObject>) invokeResult)
-        {
-            (var script, var result) = invokeResult;
-            InvokeResults.Clear();
-            InvokeResults.Add(script, result);
-        }
-
-        public void SetResponses(params (string, List<PSObject>)[] invokeResults)
-        {
-            InvokeResults.Clear();
-            foreach (var invokeResult in invokeResults)
-            {
-                (var script, var result) = invokeResult;
-                InvokeResults.Add(script, result);
-            }
-        }
-
-        public static List<PSObject> CreateResponse(string baseObject)
-        {
-            return new List<PSObject> { new PSObject(baseObject) };
+            return responses;
         }
 
         public static List<PSObject> EmptyResponse()
@@ -68,11 +52,24 @@ namespace Aribter.Core.Tests.Fakes
         public static class Responses
         {
             public static string ExpectedCommit = "fe972a89a56006182f8836fe1dc338b39d889792a";
+            public static string ExpectedToCommit = "969e26db332760f755d2429ce65e04061b61e207";
+            public static string[] ExpectedChangedFiles =
+            {
+                "Aribter.Core.Tests/Fakes/FakePowerShellInvoker.cs",
+                "Aribter.Core.Tests/RepositoryReaderTests.cs",
+                "src/Arbiter.Core/Arbiter.Core.csproj",
+                "src/Arbiter.Core/RepositoryReader.cs"
+            };
 
-            public static (string, List<PSObject>) GitFound = ( "git --version", CreateResponse("git version 2.2.8.0.windows.1"));
-            public static (string, List<PSObject>) GitNotFound = ("git --version", EmptyResponse());
-            public static (string, List<PSObject>) CommitFound = ($"git cat-file -t {ExpectedCommit}", CreateResponse("commit"));
-            public static (string, List<PSObject>) CommitNotFound = ($"git cat-file -t {ExpectedCommit}", CreateResponse("fatal: Not a valid object name fe972a89a56006182f8836fe1dc338b39d889792a"));
+            public static List<PSObject> GitFound = CreateResponse("git version 2.2.8.0.windows.1");
+            public static List<PSObject> GitNotFound = EmptyResponse();
+            public static List<PSObject> CommitFound = CreateResponse("commit");
+            public static List<PSObject> CommitNotFound = EmptyResponse();
+            public static List<PSObject> ChangedFiles = CreateResponse(ExpectedChangedFiles);
+            public static List<PSObject> RepositoryFound = CreateResponse();
+            public static List<PSObject> RepositoryNotFound = EmptyResponse();
+            public static List<PSObject> CommitIsAncestor = CreateResponse(0);
+            public static List<PSObject> CommitNotAncestor = CreateResponse(1);
         }
     }
 }

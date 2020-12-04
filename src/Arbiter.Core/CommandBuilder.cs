@@ -37,6 +37,8 @@ namespace Arbiter.Core
                 return new CommitNotFoundCommand(settings.ToCommit);
             }
 
+            // TODO: Ensure the second commit is a descendant of the first.
+
             return new BuildOutputCommand(settings);
         }
     }

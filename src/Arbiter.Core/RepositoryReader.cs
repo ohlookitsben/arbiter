@@ -18,7 +18,7 @@ namespace Arbiter.Core
             // TODO: Set it to the solution directory to ensure we're inside a repository.
             _invoker.WorkingDirectory = @"C:\Users\ben.wiles\source\repos\Arbiter";
         }
-
+        
         public bool GitExists()
         {
             string script = $"git --version";
@@ -29,6 +29,30 @@ namespace Arbiter.Core
             }
 
             return new Regex("^git.*").IsMatch(result.BaseObject.ToString());
+        }
+
+        public bool CommitIsAncestor(string commit, string ancestor)
+        {
+            string script = $"git merge-base --is-ancestor {ancestor} {commit}; $LastExitCode";
+            var result = _invoker.Invoke(script).SingleOrDefault();
+            if (result == null)
+            {
+                return false;
+            }
+
+            return ((int) result.BaseObject) == 0;
+        }
+
+        public bool RepositoryExists()
+        {
+            string script = $"git status";
+            var result = _invoker.Invoke(script).SingleOrDefault();
+            if (result == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public bool CommitExists(string commit)
@@ -43,13 +67,16 @@ namespace Arbiter.Core
             return result.BaseObject.ToString() == "commit";
         }
 
+        /// <summary>
+        /// List the files that have changed between <paramref name="fromCommit"/> and <paramref name="toCommit"/>. If no
+        /// files have changed, or the two commit are the same, an empty list will be returned. The list will contain no
+        /// duplicate entries in the case that a file has been changed multiple times.
+        /// </summary>
         public List<string> ListChangedFiles(string fromCommit, string toCommit)
         {
             string script = $"git diff --name-only {fromCommit} {toCommit}";
             var results = _invoker.Invoke(script);
-
-
-            return new List<string>();
+            return results.Select(r => r.BaseObject.ToString()).Distinct().ToList();
         }
     }
 }
