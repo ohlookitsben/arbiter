@@ -1,4 +1,5 @@
 ﻿using Arbiter.Core;
+using Arbiter.MSBuild;
 using Autofac;
 using System;
 
@@ -14,7 +15,7 @@ namespace Arbiter
             try
             {
                 var builder = new ContainerBuilder();
-                var assemblies = new[] { typeof(Program).Assembly, typeof(CommandBuilder).Assembly };
+                var assemblies = new[] { typeof(Program).Assembly, typeof(CommandBuilder).Assembly, typeof(MSBuildSolutionAnalyzer).Assembly };
                 builder.RegisterAssemblyTypes(assemblies).PublicOnly().AsSelf().AsImplementedInterfaces();
                 var container = builder.Build();
                 program = container.Resolve<Program>();

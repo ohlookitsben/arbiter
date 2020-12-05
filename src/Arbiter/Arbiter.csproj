@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Arbiter.Core\Arbiter.Core.csproj" />
+    <ProjectReference Include="..\Arbiter.MSBuild\Arbiter.MSBuild.csproj" />
   </ItemGroup>
 
 </Project>

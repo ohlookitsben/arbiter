@@ -8,10 +8,10 @@ namespace Arbiter.Core.Commands
     {
         private readonly RunSettings _settings;
         private readonly IRepositoryReader _repositoryReader;
-        private readonly MSBuildSolutionAnalyzer _analyzer;
+        private readonly IMSBuildSolutionAnalyzer _analyzer;
         private readonly NUnitProjectWriter _writer;
 
-        public BuildOutputCommand(RunSettings settings, IRepositoryReader repositoryReader, MSBuildSolutionAnalyzer analyzer, NUnitProjectWriter writer)
+        public BuildOutputCommand(RunSettings settings, IRepositoryReader repositoryReader, IMSBuildSolutionAnalyzer analyzer, NUnitProjectWriter writer)
         {
             _settings = settings;
             _repositoryReader = repositoryReader;
@@ -23,6 +23,7 @@ namespace Arbiter.Core.Commands
         public int Execute()
         {
             var changedFiles = _repositoryReader.ListChangedFiles(_settings.FromCommit, _settings.ToCommit);
+            _analyzer.LoadSolution(_settings.Solution);
             var changedProjects = _analyzer.FindContainingProjects(changedFiles);
             var dependantProjects = _analyzer.FindDependantProjects(changedProjects);
             var dependantProjectPaths = dependantProjects.Select(p => p.Project).ToList();
