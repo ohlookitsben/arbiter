@@ -1,6 +1,8 @@
 ﻿using Arbiter.Core;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management.Automation;
 
@@ -17,7 +19,7 @@ namespace Aribter.Core.Tests.Fakes
         /// </summary>
         public bool ResultIsEmpty { get; set; }
 
-        public string WorkingDirectory { get; set; }
+        public string WorkingDirectory { get; set; } = TestContext.CurrentContext.WorkDirectory;
 
         public List<PSObject> Invoke(string script)
         {
@@ -51,10 +53,10 @@ namespace Aribter.Core.Tests.Fakes
             public static readonly string ExpectedToCommit = "969e26db332760f755d2429ce65e04061b61e207";
             public static readonly string[] ExpectedChangedFiles =
             {
-                "Aribter.Core.Tests/Fakes/FakePowerShellInvoker.cs",
-                "Aribter.Core.Tests/RepositoryReaderTests.cs",
-                "src/Arbiter.Core/Arbiter.Core.csproj",
-                "src/Arbiter.Core/RepositoryReader.cs"
+                Path.Combine(TestContext.CurrentContext.WorkDirectory, @"Aribter.Core.Tests\Fakes\FakePowerShellInvoker.cs"),
+                Path.Combine(TestContext.CurrentContext.WorkDirectory, @"Aribter.Core.Tests\RepositoryReaderTests.cs"),
+                Path.Combine(TestContext.CurrentContext.WorkDirectory, @"src\Arbiter.Core\Arbiter.Core.csproj"),
+                Path.Combine(TestContext.CurrentContext.WorkDirectory, @"src\Arbiter.Core\RepositoryReader.cs")
             };
 
             public static readonly List<PSObject> Empty = new List<PSObject>();

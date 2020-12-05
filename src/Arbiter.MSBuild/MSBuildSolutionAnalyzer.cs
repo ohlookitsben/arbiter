@@ -1,12 +1,8 @@
 ﻿using Arbiter.Core.Analysis;
-using Microsoft.Build.Construction;
-using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
-using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -104,8 +100,7 @@ namespace Arbiter.MSBuild
         {
             Distance = distance,
             Project = project.Name,
-            FilePath = project.FilePath,
-            Assembly = project.AssemblyName
+            FilePath = project.FilePath
         };
 
         public void LoadSolution(string solution)
@@ -154,47 +149,6 @@ namespace Arbiter.MSBuild
             }
 
             return testProjects;
-        }
-    }
-    /// <summary>
-    /// Class for performing the project build
-    /// </summary>
-    /// <remarks>
-    /// The Microsoft.Build namespaces must be referenced from a method that is called
-    /// after RegisterInstance so that it has a chance to change their load behavior.
-    /// Here, we put Microsoft.Build calls into a separate class
-    /// that is only referenced after calling RegisterInstance.
-    /// </remarks>
-    public class Builder
-    {
-        public bool Build(string projectFile)
-        {
-            var assembly = typeof(Project).Assembly;
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-
-            Console.WriteLine();
-            Console.WriteLine($"BuildApp running using MSBuild version {fvi.FileVersion}");
-            Console.WriteLine(Path.GetDirectoryName(assembly.Location));
-            Console.WriteLine();
-
-            var pre = ProjectRootElement.Open(projectFile);
-            var project = new Microsoft.Build.Evaluation.Project(pre);
-            return project.Build(new Logger());
-        }
-
-        private class Logger : Microsoft.Build.Framework.ILogger
-        {
-            public void Initialize(IEventSource eventSource)
-            {
-                eventSource.AnyEventRaised += (_, args) => { Console.WriteLine(args.Message); };
-            }
-
-            public void Shutdown()
-            {
-            }
-
-            public LoggerVerbosity Verbosity { get; set; }
-            public string Parameters { get; set; }
         }
     }
 }

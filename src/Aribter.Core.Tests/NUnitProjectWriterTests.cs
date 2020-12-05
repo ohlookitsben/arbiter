@@ -1,4 +1,4 @@
-﻿using Arbiter.Core.Output;
+﻿using Arbiter.Core;
 using Aribter.Core.Tests.Fakes;
 using Moq;
 using NUnit.Framework;

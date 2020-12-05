@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
-namespace Arbiter.Core.Output
+namespace Arbiter.Core
 {
     public class NUnitProjectWriter
     {

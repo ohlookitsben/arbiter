@@ -10,15 +10,15 @@ namespace Arbiter
     public class Program
     {
         private readonly CommandBuilder _commandBuilder;
+        private readonly ILogger _log;
 
         private static int Main(string[] args)
         {
-            args = new string[] { @"..\..\..\..\..\Arbiter.sln", "c6959c4", "a9ae776", "arbiter.nunit" };
             Program program;
             try
             {
                 Log.Logger = new LoggerConfiguration()
-                    .WriteTo.Console()
+                    .WriteTo.File(Constants.LogFile)
                     .CreateLogger();
 
                 // The correct MSBuild must be registered before types that reference it cause the assemblies to load.
@@ -28,8 +28,9 @@ namespace Arbiter
             }
             catch (Exception e)
             {
-                Console.WriteLine("Fatal Exception:");
+                Console.WriteLine("A fatal exception occurred before processing could start:");
                 Console.WriteLine(e);
+
                 return -1;
             }
 
@@ -37,9 +38,8 @@ namespace Arbiter
         }
 
         /// <summary>
-        /// LoadProgram will reference code that requires MSBuild assemblies to be loaded so it must be in a separate method to the Registration call.
+        /// LoadProgram references code that requires MSBuild assemblies to be loaded so it must be in a separate method to the RegisterDefaults call.
         /// </summary>
-        /// <returns></returns>
         private static Program LoadProgram()
         {
             var builder = new ContainerBuilder();
@@ -51,15 +51,26 @@ namespace Arbiter
             return container.Resolve<Program>();
         }
 
-        public Program(CommandBuilder commandBuilder)
+        public Program(CommandBuilder commandBuilder, ILogger log)
         {
             _commandBuilder = commandBuilder;
+            _log = log;
         }
 
         public int Run(string[] args)
         {
-            var command = _commandBuilder.ProcessArguments(args);
-            return command.Execute();
+            try
+            {
+                var command = _commandBuilder.ProcessArguments(args);
+                return command.Execute();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"A ({e.GetType().Name}) occurred during processing. See the logfile {Constants.LogFile} for details.");
+                _log.Error(e.ToString());
+
+                return -1;
+            }
         }
     }
 }
