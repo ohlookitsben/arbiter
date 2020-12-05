@@ -6,6 +6,6 @@ namespace Arbiter.Core
     {
         bool Exists(string path);
         string GetDirectory(string solution);
-        void WriteFile(string path, FileMode mode, string contents);
+        void WriteFile(string path, string contents);
     }
 }

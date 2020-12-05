@@ -1,8 +1,13 @@
 ﻿using Arbiter.Core.Analysis;
+using Microsoft.Build.Construction;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Arbiter.MSBuild
@@ -10,7 +15,13 @@ namespace Arbiter.MSBuild
     public class MSBuildSolutionAnalyzer : IMSBuildSolutionAnalyzer
     {
         private const int _distanceHardLimit = 100;
+        private readonly Serilog.ILogger _log;
         private Solution _solution;
+
+        public MSBuildSolutionAnalyzer(Serilog.ILogger log)
+        {
+            _log = log;
+        }
 
         public List<string> FindContainingProjects(IEnumerable<string> files)
         {
@@ -69,7 +80,8 @@ namespace Arbiter.MSBuild
 
             ++distance;
             int startingProjectCount = results.Values.Count;
-            foreach (var project in results.Values.Where(r => r.Distance == distance - 1))
+            var ancestors = results.Values.Where(r => r.Distance == distance - 1).ToList();
+            foreach (var project in ancestors)
             {
                 var projectObj = _solution.Projects.SingleOrDefault(p => p.FilePath == project.FilePath);
                 var dependantProjectIds = graph.GetProjectsThatDirectlyDependOnThisProject(projectObj.Id);
@@ -77,7 +89,7 @@ namespace Arbiter.MSBuild
                 var newDependantProjects = _solution.Projects.Where(p => newDependantProjectIds.Contains(p.Id));
                 foreach (var newProject in newDependantProjects)
                 {
-                    results.Add(newProject.Id, CreateAnalysisResult(projectObj, distance));
+                    results.Add(newProject.Id, CreateAnalysisResult(newProject, distance));
                 }
             }
 
@@ -88,7 +100,7 @@ namespace Arbiter.MSBuild
             }
         }
 
-        private AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult
+        private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult
         {
             Distance = distance,
             Project = project.Name,
@@ -111,12 +123,78 @@ namespace Arbiter.MSBuild
 
         private void LoadSolution_ProgressChanged(object sender, ProjectLoadProgress e)
         {
-            // Log
+            _log.Information($"Loading Solution: {Path.GetFileName(e.FilePath)} - {e.Operation}");
         }
 
         private void LoadSolution_WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
         {
-            // Log
+            switch (e.Diagnostic.Kind)
+            {
+                case WorkspaceDiagnosticKind.Failure:
+                    _log.Warning($"Workspace Message: {e.Diagnostic.Message}");
+                    break;
+                case WorkspaceDiagnosticKind.Warning:
+                    _log.Information($"Workspace Message: {e.Diagnostic.Message}");
+                    break;
+            }
+        }
+
+        public List<AnalysisResult> ExcludeNonTestProjects(List<AnalysisResult> dependantProjects)
+        {
+            var testProjects = new List<AnalysisResult>();
+            foreach (var project in dependantProjects)
+            {
+                var projectObj = _solution.Projects.Single(p => p.FilePath == project.FilePath);
+                var referencedAssemblies = projectObj.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
+                bool isTestAssembly = referencedAssemblies.Any(r => Path.GetFileName(r.Display) == "nunit.framework.dll");
+                if (isTestAssembly)
+                {
+                    testProjects.Add(project);
+                }
+            }
+
+            return testProjects;
+        }
+    }
+    /// <summary>
+    /// Class for performing the project build
+    /// </summary>
+    /// <remarks>
+    /// The Microsoft.Build namespaces must be referenced from a method that is called
+    /// after RegisterInstance so that it has a chance to change their load behavior.
+    /// Here, we put Microsoft.Build calls into a separate class
+    /// that is only referenced after calling RegisterInstance.
+    /// </remarks>
+    public class Builder
+    {
+        public bool Build(string projectFile)
+        {
+            var assembly = typeof(Project).Assembly;
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+
+            Console.WriteLine();
+            Console.WriteLine($"BuildApp running using MSBuild version {fvi.FileVersion}");
+            Console.WriteLine(Path.GetDirectoryName(assembly.Location));
+            Console.WriteLine();
+
+            var pre = ProjectRootElement.Open(projectFile);
+            var project = new Microsoft.Build.Evaluation.Project(pre);
+            return project.Build(new Logger());
+        }
+
+        private class Logger : Microsoft.Build.Framework.ILogger
+        {
+            public void Initialize(IEventSource eventSource)
+            {
+                eventSource.AnyEventRaised += (_, args) => { Console.WriteLine(args.Message); };
+            }
+
+            public void Shutdown()
+            {
+            }
+
+            public LoggerVerbosity Verbosity { get; set; }
+            public string Parameters { get; set; }
         }
     }
 }

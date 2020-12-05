@@ -26,14 +26,12 @@ namespace Arbiter.Core.Commands
         {
             var changedFiles = _repositoryReader.ListChangedFiles(_settings.FromCommit, _settings.ToCommit);
 
-            // Locate the correct MSBuild assemblies. This must occur before the solution can be loaded.
-            _locator.RegisterDefaults();
-
             _analyzer.LoadSolution(_settings.Solution);
             var changedProjects = _analyzer.FindContainingProjects(changedFiles);
             var dependantProjects = _analyzer.FindDependantProjects(changedProjects);
-            var dependantProjectPaths = dependantProjects.Select(p => p.Project).ToList();
-            _writer.WriteProject(_settings.Output, dependantProjectPaths);
+            var dependantTestProjects = _analyzer.ExcludeNonTestProjects(dependantProjects);
+            var dependantTestProjectPaths = dependantTestProjects.Select(p => p.FilePath).ToList();
+            _writer.WriteProject(_settings.Output, dependantTestProjectPaths);
 
             return 0;
         }

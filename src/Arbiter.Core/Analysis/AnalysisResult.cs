@@ -1,5 +1,8 @@
-﻿namespace Arbiter.Core.Analysis
+﻿using System.Diagnostics;
+
+namespace Arbiter.Core.Analysis
 {
+    [DebuggerDisplay("Project: {Project}, Distance: {Distance}")]
     public class AnalysisResult
     {
         public string Project { get; set; }

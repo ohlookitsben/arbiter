@@ -8,12 +8,28 @@ namespace Arbiter.Core
 
         public string GetDirectory(string solution) => new FileInfo(solution).Directory.FullName;
 
-        public void WriteFile(string path, FileMode mode, string contents)
+        public void WriteFile(string path, string contents)
         {
-            using (var file = File.Open(path, mode))
-            using (var writer = new StreamWriter(file))
+            FileStream file = null;
+            try
             {
-                writer.Write(contents);
+                if (!File.Exists(path))
+                {
+                    file = File.Create(path);
+                }
+                else
+                {
+                    file = File.Open(path, FileMode.Truncate);
+                }
+
+                using (var writer = new StreamWriter(file))
+                {
+                    writer.Write(contents);
+                }
+            }
+            finally
+            {
+                file?.Dispose();
             }
         }
     }

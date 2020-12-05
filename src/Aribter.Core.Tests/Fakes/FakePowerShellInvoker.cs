@@ -47,9 +47,9 @@ namespace Aribter.Core.Tests.Fakes
 
         public static class Responses
         {
-            public static string ExpectedCommit = "fe972a89a56006182f8836fe1dc338b39d889792a";
-            public static string ExpectedToCommit = "969e26db332760f755d2429ce65e04061b61e207";
-            public static string[] ExpectedChangedFiles =
+            public static readonly string ExpectedCommit = "fe972a89a56006182f8836fe1dc338b39d889792a";
+            public static readonly string ExpectedToCommit = "969e26db332760f755d2429ce65e04061b61e207";
+            public static readonly string[] ExpectedChangedFiles =
             {
                 "Aribter.Core.Tests/Fakes/FakePowerShellInvoker.cs",
                 "Aribter.Core.Tests/RepositoryReaderTests.cs",
@@ -57,19 +57,18 @@ namespace Aribter.Core.Tests.Fakes
                 "src/Arbiter.Core/RepositoryReader.cs"
             };
 
-            public static List<PSObject> Empty = new List<PSObject>();
-            public static List<PSObject> GitFound = CreateResponse("git version 2.2.8.0.windows.1");
-            public static List<PSObject> GitNotFound = Empty;
-            public static List<PSObject> CommitFound = CreateResponse("commit");
-            public static List<PSObject> CommitNotFound = Empty;
-            public static List<PSObject> ChangedFiles = CreateResponse(ExpectedChangedFiles);
-            public static List<PSObject> ChangedFilesWithDuplicates = CreateResponse(ExpectedChangedFiles.Concat(ExpectedChangedFiles).ToArray());
-            public static List<PSObject> RepositoryFound = CreateResponse(@"On branch master
-nothing to commit, working tree clean");
-            public static List<PSObject> RepositoryNotFound = Empty;
-            public static List<PSObject> CommitIsAncestor = CreateResponse(0);
-            public static List<PSObject> CommitNotAncestor = CreateResponse(1);
-            public static List<PSObject> NoChangedFiles = Empty;
+            public static readonly List<PSObject> Empty = new List<PSObject>();
+            public static readonly List<PSObject> GitFound = CreateResponse("git version 2.2.8.0.windows.1");
+            public static readonly List<PSObject> GitNotFound = Empty;
+            public static readonly List<PSObject> CommitFound = CreateResponse("commit");
+            public static readonly List<PSObject> CommitNotFound = Empty;
+            public static readonly List<PSObject> ChangedFiles = CreateResponse(ExpectedChangedFiles);
+            public static readonly List<PSObject> ChangedFilesWithDuplicates = CreateResponse(ExpectedChangedFiles.Concat(ExpectedChangedFiles).ToArray());
+            public static readonly List<PSObject> RepositoryFound = CreateResponse("On branch master", "nothing to commit, working tree clean");
+            public static readonly List<PSObject> RepositoryNotFound = Empty;
+            public static readonly List<PSObject> CommitIsAncestor = CreateResponse(0);
+            public static readonly List<PSObject> CommitNotAncestor = CreateResponse(1);
+            public static readonly List<PSObject> NoChangedFiles = Empty;
         }
     }
 }

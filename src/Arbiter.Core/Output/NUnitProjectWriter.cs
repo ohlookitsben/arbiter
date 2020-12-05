@@ -10,7 +10,7 @@ namespace Arbiter.Core.Output
         private const string _projectTemplate = @"<NUnitProject>
     <Settings activeConfig=""Arbiter"" />
     <Config name=""Arbiter"">
-    {0}
+        {0}
     </Config>
 </NUnitProject>
 ";
@@ -27,10 +27,10 @@ namespace Arbiter.Core.Output
         public void WriteProject(string path, IEnumerable<string> assemblies)
         {
             var assemblyTags = assemblies.Select(a => string.Format(_assemblyTemplate, a));
-            string assemblyBlock = string.Join($"    {Environment.NewLine}", assemblyTags);
+            string assemblyBlock = string.Join($"{Environment.NewLine}        ", assemblyTags);
             string project = string.Format(_projectTemplate, assemblyBlock);
 
-            _fileSystem.WriteFile(path, FileMode.Truncate, project);
+            _fileSystem.WriteFile(path, project);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -42,7 +44,7 @@ namespace Arbiter.Core
         public bool RepositoryExists()
         {
             string script = $"git status";
-            var result = _invoker.Invoke(script).SingleOrDefault();
+            var result = _invoker.Invoke(script).FirstOrDefault();
             if (result == null)
             {
                 return false;
@@ -72,7 +74,9 @@ namespace Arbiter.Core
         {
             string script = $"git diff --name-only {fromCommit} {toCommit}";
             var results = _invoker.Invoke(script);
-            return results.Select(r => r.BaseObject.ToString()).Distinct().ToList();
+            var relativePaths = results.Select(r => r.BaseObject.ToString()).Distinct();
+            // Ensure canonical paths are returned, rather than a mix of slash types, etc.
+            return relativePaths.Select(p => new Uri(Path.Combine(WorkingDirectory, p)).LocalPath).ToList();
         }
     }
 }
