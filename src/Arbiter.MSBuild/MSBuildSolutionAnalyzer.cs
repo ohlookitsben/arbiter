@@ -1,4 +1,5 @@
-﻿using Arbiter.Core.Analysis;
+﻿using Arbiter.Core;
+using Arbiter.Core.Analysis;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
@@ -13,6 +14,8 @@ namespace Arbiter.MSBuild
         private const int _distanceHardLimit = 100;
         private readonly Serilog.ILogger _log;
         private Solution _solution;
+        private int _loadErrorCount = 0;
+        private int _loadWarningCount;
 
         public MSBuildSolutionAnalyzer(Serilog.ILogger log)
         {
@@ -110,15 +113,34 @@ namespace Arbiter.MSBuild
             var progress = new Progress<ProjectLoadProgress>();
             progress.ProgressChanged += LoadSolution_ProgressChanged;
 
+            Console.WriteLine();
             var openTask = workspace.OpenSolutionAsync(solution, progress);
             openTask.Wait();
+
+            Console.WriteLine();
+            Console.WriteLine($"Solution opened with {_loadWarningCount} warnings and {_loadErrorCount} errors. See {Constants.LogFile} for more information.");
+
+            _loadErrorCount = 0;
+            _loadWarningCount = 0;
 
             _solution = openTask.Result;
         }
 
         private void LoadSolution_ProgressChanged(object sender, ProjectLoadProgress e)
         {
-            _log.Information($"Loading Solution: {Path.GetFileName(e.FilePath)} - {e.Operation}");
+            switch (e.Operation)
+            {
+                case ProjectLoadOperation.Evaluate:
+                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 1/3)");
+                    break;
+                case ProjectLoadOperation.Build:
+                    Console.Write($"\rLoading project {Path.GetFileName(e.FilePath)} (Stage 2/3)");
+                    break;
+                case ProjectLoadOperation.Resolve:
+                    Console.Write($"\rLoading project {Path.GetFileName(e.FilePath)} (Stage 3/3)");
+                    Console.WriteLine();
+                    break;
+            }
         }
 
         private void LoadSolution_WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
@@ -126,10 +148,12 @@ namespace Arbiter.MSBuild
             switch (e.Diagnostic.Kind)
             {
                 case WorkspaceDiagnosticKind.Failure:
-                    _log.Warning($"Workspace Message: {e.Diagnostic.Message}");
+                    _log.Warning($"LoadSolution_WorkspaceFailed: {e.Diagnostic.Message}");
+                    ++_loadErrorCount;
                     break;
                 case WorkspaceDiagnosticKind.Warning:
-                    _log.Information($"Workspace Message: {e.Diagnostic.Message}");
+                    _log.Information($"LoadSolution_WorkspaceFailed: {e.Diagnostic.Message}");
+                    ++_loadWarningCount;
                     break;
             }
         }

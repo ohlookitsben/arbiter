@@ -66,7 +66,7 @@ namespace Arbiter
             }
             catch (Exception e)
             {
-                Console.WriteLine($"A ({e.GetType().Name}) occurred during processing. See the logfile {Constants.LogFile} for details.");
+                Console.WriteLine($"A {e.GetType().Name} occurred during processing. See the log file {Constants.LogFile} for details.");
                 _log.Error(e.ToString());
 
                 return -1;

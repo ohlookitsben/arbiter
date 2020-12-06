@@ -22,11 +22,6 @@ namespace Arbiter.Core
                 return _factory.CreateCommand<UsageCommand>();
             }
 
-            if (!_repositoryReader.GitExists())
-            {
-                return _factory.CreatePrintMessageCommand($"No git executable could be found");
-            }
-
             var settings = new RunSettings(args);
             if (!_fileReader.Exists(settings.Solution))
             {
@@ -35,6 +30,12 @@ namespace Arbiter.Core
 
             settings.WorkingDirectory = _fileReader.GetDirectory(settings.Solution);
             _repositoryReader.WorkingDirectory = settings.WorkingDirectory;
+
+            if (!_repositoryReader.GitExists())
+            {
+                return _factory.CreatePrintMessageCommand($"No git executable could be found");
+            }
+
             if (!_repositoryReader.RepositoryExists())
             {
                 return _factory.CreatePrintMessageCommand($"No repository could be found at: {settings.WorkingDirectory}");
