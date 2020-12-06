@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management.Automation;
 
@@ -10,14 +12,16 @@ namespace Arbiter.Core
 
         public List<PSObject> Invoke(string script)
         {
+            if (!Directory.Exists(WorkingDirectory))
+            {
+                throw new InvalidOperationException("A working directory must be set before invoking scripts.");
+            }
+
             using (var powershell = PowerShell.Create())
             {
-                if (!string.IsNullOrEmpty(WorkingDirectory))
-                {
-                    powershell.AddScript($"Set-Location {WorkingDirectory}");
-                    powershell.Invoke();
-                }
-
+                powershell.AddScript($"Set-Location {WorkingDirectory}");
+                powershell.Invoke();
+                
                 powershell.AddScript(script);
                 return powershell.Invoke().ToList();
             }

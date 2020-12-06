@@ -4,9 +4,10 @@ using Autofac;
 using Moq;
 using NUnit.Framework;
 
-namespace Aribter.Core.Tests
+namespace Arbiter.Tests.Unit
 {
     [TestFixture]
+    [Category(TestCategory.Unit)]
     public class CommandBuilderTests
     {
         private CommandBuilder _builder;
@@ -123,7 +124,7 @@ namespace Aribter.Core.Tests
             AssertMessageContains(command, "repository");
         }
 
-        private void AssertMessageContains(ICommand command, string contains)
+        private static void AssertMessageContains(ICommand command, string contains)
         {
             Assert.IsInstanceOf<PrintMessageCommand>(command);
             var printMessageCommand = (PrintMessageCommand)command;

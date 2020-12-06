@@ -134,7 +134,7 @@ namespace Arbiter.MSBuild
             }
         }
 
-        public List<AnalysisResult> ExcludeNonTestProjects(List<AnalysisResult> dependantProjects)
+        public List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependantProjects)
         {
             var testProjects = new List<AnalysisResult>();
             foreach (var project in dependantProjects)

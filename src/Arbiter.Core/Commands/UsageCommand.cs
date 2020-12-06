@@ -17,7 +17,7 @@ namespace Arbiter.Core.Commands
             return 0;
         }
 
-        private void WriteOptionHelp(string option, string help)
+        private static void WriteOptionHelp(string option, string help)
         {
             Console.WriteLine($"{option}:");
             Console.WriteLine($"  {help}");

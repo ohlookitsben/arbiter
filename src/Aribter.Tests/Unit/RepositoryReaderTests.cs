@@ -1,11 +1,12 @@
 ﻿using Arbiter.Core;
-using Aribter.Core.Tests.Fakes;
+using Arbiter.Tests.Fakes;
 using NUnit.Framework;
-using static Aribter.Core.Tests.Fakes.FakePowerShellInvoker;
+using static Arbiter.Tests.Fakes.FakePowerShellInvoker;
 
-namespace Aribter.Core.Tests
+namespace Arbiter.Tests.Unit
 {
     [TestFixture]
+    [Category(TestCategory.Unit)]
     public class RepositoryReaderTests
     {
         private FakePowerShellInvoker _invoker;
@@ -99,13 +100,53 @@ namespace Aribter.Core.Tests
         }
 
         [Test]
-        public void ListChangedFilesNoChangedFiles_EmptyList()
+        public void ListChangedFiles_NoChangedFiles_EmptyList()
         {
             _invoker.InvokeResult = Responses.NoChangedFiles;
 
             var files = _reader.ListChangedFiles(Responses.ExpectedCommit, Responses.ExpectedToCommit);
 
             CollectionAssert.IsEmpty(files);
+        }
+
+        [Test]
+        public void RepositoryExists_RepositoryFound_ReturnsTrue()
+        {
+            _invoker.InvokeResult = Responses.RepositoryFound;
+
+            bool result = _reader.RepositoryExists();
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void RepositoryExists_RepositoryNotFound_ReturnsFalse()
+        {
+            _invoker.InvokeResult = Responses.RepositoryNotFound;
+
+            bool result = _reader.RepositoryExists();
+
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CommitIsAncestor_IsAncestor_ReturnsTrue()
+        {
+            _invoker.InvokeResult = Responses.CommitIsAncestor;
+
+            bool result = _reader.CommitIsAncestor("fe972a89a56006182f8836fe1dc338b39d889792a", "969e26db332760f755d2429ce65e04061b61e207");
+
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void CommitIsAncestor_NotAncestor_ReturnsFalse()
+        {
+            _invoker.InvokeResult = Responses.CommitNotAncestor;
+
+            bool result = _reader.CommitIsAncestor("fe972a89a56006182f8836fe1dc338b39d889792a", "969e26db332760f755d2429ce65e04061b61e207");
+
+            Assert.IsFalse(result);
         }
     }
 }

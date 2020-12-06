@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Management.Automation;
 
-namespace Aribter.Core.Tests.Fakes
+namespace Arbiter.Tests.Fakes
 {
     public class FakePowerShellInvoker : IPowerShellInvoker
     {

@@ -2,7 +2,7 @@
 using System;
 using System.IO;
 
-namespace Aribter.Core.Tests.Fakes
+namespace Arbiter.Tests.Fakes
 {
     public class FakeFileSystem : IFileSystem
     {

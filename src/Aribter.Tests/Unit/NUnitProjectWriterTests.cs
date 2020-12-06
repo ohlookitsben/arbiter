@@ -1,14 +1,15 @@
 ﻿using Arbiter.Core;
-using Aribter.Core.Tests.Fakes;
+using Arbiter.Tests.Fakes;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Linq;
 using System.Xml;
 
-namespace Aribter.Core.Tests
+namespace Arbiter.Tests.Unit
 {
     [TestFixture]
+    [Category(TestCategory.Unit)]
     public class NUnitProjectWriterTests
     {
         private FakeFileSystem _fileSystem;
@@ -24,7 +25,7 @@ namespace Aribter.Core.Tests
         [Test]
         public void WriteProject_AnyInput_GeneratesNonEmptyProject()
         {
-            _writer.WriteProject("", new string[0]);
+            _writer.WriteProject("", Array.Empty<string>());
 
             Assert.IsNotNull(_fileSystem.File);
             Assert.IsNotEmpty(_fileSystem.File);
@@ -36,7 +37,7 @@ namespace Aribter.Core.Tests
         [Test]
         public void WriteProject_AnyInput_GeneratesValidProject()
         {
-            _writer.WriteProject("", new string[0]);
+            _writer.WriteProject("", Array.Empty<string>());
 
             var document = new XmlDocument();
             document.LoadXml(_fileSystem.File);
@@ -52,7 +53,7 @@ namespace Aribter.Core.Tests
         [Test]
         public void WriteProject_AnyInput_GeneratesValidConfig()
         {
-            _writer.WriteProject("", new string[0]);
+            _writer.WriteProject("", Array.Empty<string>());
 
             var document = new XmlDocument();
             document.LoadXml(_fileSystem.File);
@@ -67,7 +68,7 @@ namespace Aribter.Core.Tests
         [Test]
         public void WriteProject_AnyInput_WritesToPath()
         {
-            _writer.WriteProject("MyPath", new string[0]);
+            _writer.WriteProject("MyPath", Array.Empty<string>());
 
             Assert.AreEqual("MyPath", _fileSystem.FilePath);
         }
