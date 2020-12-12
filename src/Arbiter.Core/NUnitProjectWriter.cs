@@ -23,9 +23,10 @@ namespace Arbiter.Core
             _fileSystem = fileSystem;
         }
 
-        public void WriteProject(string path, IEnumerable<string> assemblies)
+        public void WriteProject(string path, IEnumerable<string> sourceAssemblyPaths, IEnumerable<string> dependentAssemblies)
         {
-            var assemblyTags = assemblies.Select(a => string.Format(_assemblyTemplate, a));
+            var assemblyPaths = sourceAssemblyPaths.Where(a => dependentAssemblies.Any(d => a.EndsWith(d)));
+            var assemblyTags = assemblyPaths.Select(a => string.Format(_assemblyTemplate, a));
             string assemblyBlock = string.Join($"{Environment.NewLine}        ", assemblyTags);
             string project = string.Format(_projectTemplate, assemblyBlock);
 

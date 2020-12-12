@@ -10,14 +10,16 @@ namespace Arbiter.Core.Commands
         private readonly IRepositoryReader _repositoryReader;
         private readonly IMSBuildSolutionAnalyzer _analyzer;
         private readonly NUnitProjectWriter _writer;
+        private readonly NUnitProjectReader _reader;
 
-        public BuildOutputCommand(RunSettings settings, IRepositoryReader repositoryReader, IMSBuildSolutionAnalyzer analyzer, NUnitProjectWriter writer)
+        public BuildOutputCommand(RunSettings settings, IRepositoryReader repositoryReader, IMSBuildSolutionAnalyzer analyzer, NUnitProjectWriter writer, NUnitProjectReader reader)
         {
             _settings = settings;
             _repositoryReader = repositoryReader;
             _repositoryReader.WorkingDirectory = _settings.WorkingDirectory;
             _analyzer = analyzer;
             _writer = writer;
+            _reader = reader;
         }
 
         public int Execute()
@@ -44,24 +46,26 @@ namespace Arbiter.Core.Commands
                 return 0;
             }
 
-            var dependantProjects = _analyzer.FindDependantProjects(changedProjects);
-            var dependantTestProjects = _analyzer.ExcludeNonTestProjects(dependantProjects);
-            if (!dependantProjects.Any())
+            var dependentProjects = _analyzer.FindDependentProjects(changedProjects);
+            var dependentTestProjects = _analyzer.ExcludeNonTestProjects(dependentProjects);
+            if (!dependentProjects.Any())
             {
-                Console.WriteLine("O dependant test projects found. No output will be written.");
+                Console.WriteLine("O dependent test projects found. No output will be written.");
                 return 0;
             }
 
-            var dependantTestProjectPaths = dependantTestProjects.Select(p => p.FilePath).ToList();
-            var dependantTestProjectStrings = dependantTestProjects.OrderBy(p => p.Distance).ThenBy(p => p.Project).Select(p => $"Distance: {p.Distance,3} Project: {p.Project}");
-            string dependantTestProjectsOutput = $"      {string.Join($"{Environment.NewLine}      ", dependantTestProjectStrings)}";
+            var depdendentTestProjectAssemblyNames = dependentTestProjects.Select(p => p.Assembly).ToList();
+            var dependentTestProjectStrings = dependentTestProjects.OrderBy(p => p.Distance).ThenBy(p => p.Project).Select(p => $"Distance: {p.Distance,3} Project: {p.Project}");
+            string dependentTestProjectsOutput = $"      {string.Join($"{Environment.NewLine}      ", dependentTestProjectStrings)}";
             Console.WriteLine();
-            Console.WriteLine("Found dependant test projects");
-            Console.WriteLine(dependantTestProjectsOutput);
+            Console.WriteLine("Found dependent test projects");
+            Console.WriteLine(dependentTestProjectsOutput);
 
-            _writer.WriteProject(_settings.Output, dependantTestProjectPaths);
+            var sourceTestProjectAssemblies = _reader.ReadProject(_settings.Project);
+
+            _writer.WriteProject(_settings.Output, sourceTestProjectAssemblies, depdendentTestProjectAssemblyNames);
             Console.WriteLine();
-            Console.WriteLine($"Wrote {dependantTestProjectPaths.Count} test assemblies to {_settings.Output}");
+            Console.WriteLine($"Wrote {depdendentTestProjectAssemblyNames.Count} test assemblies to {_settings.Output}");
 
             return 0;
         }

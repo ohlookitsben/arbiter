@@ -30,7 +30,7 @@ namespace Arbiter.Tests.Unit
         }
 
         [Test]
-        public void ProcessArguments_ArgumentLengthIsTooSmall_ReturnsUsage([Range(0, 3)] int argumentLength)
+        public void ProcessArguments_ArgumentLengthIsTooSmall_ReturnsUsage([Range(0, 4)] int argumentLength)
         {
             string[] args = new string[argumentLength];
 
@@ -40,7 +40,7 @@ namespace Arbiter.Tests.Unit
         }
 
         [Test]
-        public void ProcessArguments_ArgumentLengthIsTooLarge_ReturnsUsage([Range(5, 8)] int argumentLength)
+        public void ProcessArguments_ArgumentLengthIsTooLarge_ReturnsUsage([Range(6, 8)] int argumentLength)
         {
             string[] args = new string[argumentLength];
 
@@ -52,8 +52,8 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_SolutionNotFound_ReturnsNotFound()
         {
-            string[] args = new string[4];
-            _repositoryReader.Setup(r => r.GitExists()).Returns(true);
+            string[] args = new string[5];
+            _repositoryReader.Setup(r => r.ToolExists()).Returns(true);
 
             var command = _builder.ProcessArguments(args);
 
@@ -63,9 +63,9 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_FromCommitNotFound_ReturnsNotFound()
         {
-            string[] args = new string[] { "", "commit_id", "", "" };
+            string[] args = new string[] { "solution.sln", "commit_id", "", "all.nunit", "default" };
             _fileReader.Setup(f => f.Exists(It.IsAny<string>())).Returns(true);
-            _repositoryReader.Setup(r => r.GitExists()).Returns(true);
+            _repositoryReader.Setup(r => r.ToolExists()).Returns(true);
             _repositoryReader.Setup(r => r.RepositoryExists()).Returns(true);
 
             var command = _builder.ProcessArguments(args);
@@ -76,9 +76,9 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_ToCommitNotFound_ReturnsNotFound()
         {
-            string[] args = new string[] { "", "", "commit_id", "" };
+            string[] args = new string[] { "solution.sln", "", "commit_id", "all.nunit", "default" };
             _fileReader.Setup(f => f.Exists(It.IsAny<string>())).Returns(true);
-            _repositoryReader.Setup(r => r.GitExists()).Returns(true);
+            _repositoryReader.Setup(r => r.ToolExists()).Returns(true);
             _repositoryReader.Setup(r => r.RepositoryExists()).Returns(true);
             _repositoryReader.Setup(r => r.CommitExists("")).Returns(true);
 
@@ -90,9 +90,9 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_ToCommitNotAncestor_ReturnsNotFound()
         {
-            string[] args = new string[] { "", "", "commit_id", "" };
+            string[] args = new string[] { "solution.sln", "non_ancestor", "commit_id", "all.nunit", "default" };
             _fileReader.Setup(f => f.Exists(It.IsAny<string>())).Returns(true);
-            _repositoryReader.Setup(r => r.GitExists()).Returns(true);
+            _repositoryReader.Setup(r => r.ToolExists()).Returns(true);
             _repositoryReader.Setup(r => r.RepositoryExists()).Returns(true);
             _repositoryReader.Setup(r => r.CommitExists(It.IsAny<string>())).Returns(true);
 
@@ -104,7 +104,7 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_GitNotFound_ReturnsNotFound()
         {
-            string[] args = new string[4];
+            string[] args = new string[5];
             _fileReader.Setup(f => f.Exists(It.IsAny<string>())).Returns(true);
 
             var command = _builder.ProcessArguments(args);
@@ -115,9 +115,9 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void ProcessArguments_GitRepositoryNotFound_ReturnsNotFound()
         {
-            string[] args = new string[4];
+            string[] args = new string[5];
             _fileReader.Setup(f => f.Exists(It.IsAny<string>())).Returns(true);
-            _repositoryReader.Setup(r => r.GitExists()).Returns(true);
+            _repositoryReader.Setup(r => r.ToolExists()).Returns(true);
 
             var command = _builder.ProcessArguments(args);
 

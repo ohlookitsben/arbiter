@@ -6,32 +6,38 @@ namespace Arbiter.Core
     {
         private readonly IRepositoryReader _repositoryReader;
         private readonly CommandFactory _factory;
-        private readonly IFileSystem _fileReader;
+        private readonly IFileSystem _fileSystem;
 
         public CommandBuilder(IRepositoryReader repositoryReader, CommandFactory factory, IFileSystem fileReader)
         {
             _repositoryReader = repositoryReader;
             _factory = factory;
-            _fileReader = fileReader;
+            _fileSystem = fileReader;
         }
 
         public ICommand ProcessArguments(string[] args)
         {
-            if (args.Length != 4)
+            if (args.Length != 5)
             {
                 return _factory.CreateCommand<UsageCommand>();
             }
 
             var settings = new RunSettings(args);
-            if (!_fileReader.Exists(settings.Solution))
+            if (!_fileSystem.Exists(settings.Solution))
             {
                 return _factory.CreatePrintMessageCommand($"No solution file could be found at: {settings.Solution}");
             }
 
-            settings.WorkingDirectory = _fileReader.GetDirectory(settings.Solution);
+            if (!_fileSystem.Exists(settings.Project))
+            {
+                return _factory.CreatePrintMessageCommand($"No project file could be found at: {settings.Project}");
+            }
+
+            settings.Output = _fileSystem.Combine(_fileSystem.GetDirectory(settings.Project), "arbiter.nunit");
+            settings.WorkingDirectory = _fileSystem.GetDirectory(settings.Solution);
             _repositoryReader.WorkingDirectory = settings.WorkingDirectory;
 
-            if (!_repositoryReader.GitExists())
+            if (!_repositoryReader.ToolExists())
             {
                 return _factory.CreatePrintMessageCommand($"No git executable could be found");
             }

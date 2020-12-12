@@ -10,13 +10,13 @@ namespace Arbiter.Tests.Unit
     public class RepositoryReaderTests
     {
         private FakePowerShellInvoker _invoker;
-        private RepositoryReader _reader;
+        private GitRepositoryReader _reader;
 
         [SetUp]
         public void SetUp()
         {
             _invoker = new FakePowerShellInvoker();
-            _reader = new RepositoryReader(_invoker);
+            _reader = new GitRepositoryReader(_invoker);
         }
 
         [Test]
@@ -24,7 +24,7 @@ namespace Arbiter.Tests.Unit
         {
             _invoker.InvokeResult = Responses.GitFound;
 
-            bool result = _reader.GitExists();
+            bool result = _reader.ToolExists();
 
             Assert.IsTrue(result);
         }
@@ -34,7 +34,7 @@ namespace Arbiter.Tests.Unit
         {
             _invoker.InvokeResult = Responses.GitNotFound;
 
-            bool result = _reader.GitExists();
+            bool result = _reader.ToolExists();
 
             Assert.IsFalse(result);
         }
@@ -44,7 +44,7 @@ namespace Arbiter.Tests.Unit
         {
             _invoker.ResultIsEmpty = true;
 
-            bool result = _reader.GitExists();
+            bool result = _reader.ToolExists();
 
             Assert.IsFalse(result);
         }

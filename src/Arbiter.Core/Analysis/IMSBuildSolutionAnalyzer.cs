@@ -6,7 +6,7 @@ namespace Arbiter.Core.Analysis
     {
         void LoadSolution(string solution);
         List<string> FindContainingProjects(IEnumerable<string> files);
-        List<AnalysisResult> FindDependantProjects(IEnumerable<string> projects);
-        List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependantProjects);
+        List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects);
+        List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects);
     }
 }

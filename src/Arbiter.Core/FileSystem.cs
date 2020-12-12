@@ -4,9 +4,12 @@ namespace Arbiter.Core
 {
     public class FileSystem : IFileSystem
     {
+        public string Combine(string path1, string path2) => Path.Combine(path1, path2);
+
         public bool Exists(string path) => File.Exists(path);
 
-        public string GetDirectory(string solution) => new FileInfo(solution).Directory.FullName;
+        public string GetDirectory(string path) => new FileInfo(path).Directory.FullName;
+        public string ReadFile(string path) => File.ReadAllText(path);
 
         public void WriteFile(string path, string contents)
         {

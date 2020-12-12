@@ -8,5 +8,6 @@ namespace Arbiter.Core.Analysis
         public string Project { get; set; }
         public string FilePath { get; set; }
         public int Distance { get; set; }
+        public string Assembly { get; set; }
     }
 }

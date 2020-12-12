@@ -33,12 +33,12 @@ namespace Arbiter.Tests.Unit
                 c.RegisterInstance(_analyzer.Object);
             });
 
-            var runSettings = new RunSettings(new string[4]);
+            var runSettings = new RunSettings(new string[] { @"C:\Source\MySolution.sln", "commit", "other_commit", @"C:\Source\all.nunit", "Default" });
             _command = scope.Resolve<BuildOutputCommand>(new TypedParameter(typeof(RunSettings), runSettings));
         }
 
         [Test]
-        public void Execute_DependantTestsFound_OutputContainsTests()
+        public void Execute_DependentTestsFound_OutputContainsTests()
         {
             var changedFiles = new List<string>
             {
@@ -50,17 +50,26 @@ namespace Arbiter.Tests.Unit
                 @"C:\Source\SomeProject\SomeProject.csproj",
             };
             _analyzer.Setup(a => a.FindContainingProjects(It.IsAny<IEnumerable<string>>())).Returns(containingProjects);
-            var dependantProjects = new List<AnalysisResult>
+            var dependentProjects = new List<AnalysisResult>
             {
-                new AnalysisResult { Distance = 0, FilePath = @"C:\Source\SomeProject\SomeProject.csproj", Project = "SomeProject" },
-                new AnalysisResult { Distance = 1, FilePath = @"C:\Source\SomeProject.Tests\SomeProject.Tests.csproj", Project = "SomeProject.Tests" },
+                new AnalysisResult { Distance = 0, FilePath = @"C:\Source\SomeProject\SomeProject.csproj", Project = "SomeProject", Assembly = "SomeProject.dll" },
+                new AnalysisResult { Distance = 1, FilePath = @"C:\Source\SomeProject.Tests\SomeProject.Tests.csproj", Project = "SomeProject.Tests", Assembly = "SomeProject.Tests.dll" },
             };
-            _analyzer.Setup(a => a.FindDependantProjects(It.IsAny<IEnumerable<string>>())).Returns(dependantProjects);
-            var dependantTestProjects = new List<AnalysisResult>
+            _analyzer.Setup(a => a.FindDependentProjects(It.IsAny<IEnumerable<string>>())).Returns(dependentProjects);
+            var dependentTestProjects = new List<AnalysisResult>
             {
-                new AnalysisResult { Distance = 1, FilePath = @"C:\Source\SomeProject.Tests\SomeProject.Tests.csproj", Project = "SomeProject.Tests" }
+                new AnalysisResult { Distance = 1, FilePath = @"C:\Source\SomeProject.Tests\SomeProject.Tests.csproj", Project = "SomeProject.Tests", Assembly = "SomeProject.Tests.dll" }
             };
-            _analyzer.Setup(a => a.ExcludeNonTestProjects(It.IsAny<IEnumerable<AnalysisResult>>())).Returns(dependantTestProjects);
+            _analyzer.Setup(a => a.ExcludeNonTestProjects(It.IsAny<IEnumerable<AnalysisResult>>())).Returns(dependentTestProjects);
+            // Write the all tests nunit project so it can be read before the output is written.
+            _fileSystem.WriteFile("all.nunit", @"<NUnitProject>
+    <Settings activeConfig=""Default"" />
+    <Config name=""Default"">
+        <assembly path=""SomeOtherProject.Tests\bin\Debug\SomeOtherProject.Tests.dll"" />
+        <assembly path=""SomeProject.Tests\bin\Debug\SomeProject.Tests.dll"" />
+    </Config>
+</NUnitProject>
+");
 
             int result = _command.Execute();
 
@@ -71,7 +80,7 @@ namespace Arbiter.Tests.Unit
 
             var assemblyNode = document.SelectSingleNode("//assembly");
             var assemblyPath = assemblyNode.Attributes["path"].Value;
-            Assert.AreEqual(@"C:\Source\SomeProject.Tests\SomeProject.Tests.csproj", assemblyPath);
+            Assert.AreEqual(@"SomeProject.Tests\bin\Debug\SomeProject.Tests.dll", assemblyPath);
         }
     }
 }

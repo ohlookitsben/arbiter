@@ -6,18 +6,18 @@ using System.Text.RegularExpressions;
 
 namespace Arbiter.Core
 {
-    public class RepositoryReader : IRepositoryReader
+    public class GitRepositoryReader : IRepositoryReader
     {
         private readonly IPowerShellInvoker _invoker;
 
         public string WorkingDirectory { get => _invoker.WorkingDirectory; set => _invoker.WorkingDirectory = value; }
 
-        public RepositoryReader(IPowerShellInvoker invoker)
+        public GitRepositoryReader(IPowerShellInvoker invoker)
         {
             _invoker = invoker;
         }
 
-        public bool GitExists()
+        public bool ToolExists()
         {
             string script = $"git --version";
             var result = _invoker.Invoke(script).SingleOrDefault();

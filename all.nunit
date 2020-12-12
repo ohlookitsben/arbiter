@@ -1,0 +1,6 @@
+<NUnitProject>
+    <Settings activeConfig="Default" />
+    <Config name="Default">
+        <assembly path="src\Aribter.Tests\bin\Debug\net48\Arbiter.Tests.dll" />
+    </Config>
+</NUnitProject>

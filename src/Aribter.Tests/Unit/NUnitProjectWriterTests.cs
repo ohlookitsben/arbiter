@@ -3,6 +3,7 @@ using Arbiter.Tests.Fakes;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.IO;
 using System.Linq;
 using System.Xml;
 
@@ -14,6 +15,7 @@ namespace Arbiter.Tests.Unit
     {
         private FakeFileSystem _fileSystem;
         private NUnitProjectWriter _writer;
+        private readonly string _projectPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "arbiter.nunit");
 
         [SetUp]
         public void SetUp()
@@ -25,7 +27,7 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void WriteProject_AnyInput_GeneratesNonEmptyProject()
         {
-            _writer.WriteProject("", Array.Empty<string>());
+            _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
             Assert.IsNotNull(_fileSystem.File);
             Assert.IsNotEmpty(_fileSystem.File);
@@ -37,7 +39,7 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void WriteProject_AnyInput_GeneratesValidProject()
         {
-            _writer.WriteProject("", Array.Empty<string>());
+            _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
             var document = new XmlDocument();
             document.LoadXml(_fileSystem.File);
@@ -53,7 +55,7 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void WriteProject_AnyInput_GeneratesValidConfig()
         {
-            _writer.WriteProject("", Array.Empty<string>());
+            _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
             var document = new XmlDocument();
             document.LoadXml(_fileSystem.File);
@@ -68,17 +70,17 @@ namespace Arbiter.Tests.Unit
         [Test]
         public void WriteProject_AnyInput_WritesToPath()
         {
-            _writer.WriteProject("MyPath", Array.Empty<string>());
+            _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
-            Assert.AreEqual("MyPath", _fileSystem.FilePath);
+            Assert.AreEqual(_projectPath, _fileSystem.FilePath);
         }
 
         [Test]
         public void WriteProject_HasAssemblies_WritesEachAssembly([Range(0, 3)] int assemblyCount)
         {
-            var assemblies = Enumerable.Range(0, assemblyCount).Select(_ => Guid.NewGuid().ToString()).ToList();
+            var assemblies = Enumerable.Range(0, assemblyCount).Select(_ => $"{Guid.NewGuid()}.dll").ToList();
 
-            _writer.WriteProject("", assemblies);
+            _writer.WriteProject(_projectPath, assemblies, assemblies);
 
             var document = new XmlDocument();
             document.LoadXml(_fileSystem.File);

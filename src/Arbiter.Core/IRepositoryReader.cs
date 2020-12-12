@@ -8,7 +8,7 @@ namespace Arbiter.Core
 
         bool CommitExists(string commit);
         bool CommitIsAncestor(string commit, string ancestor);
-        bool GitExists();
+        bool ToolExists();
         List<string> ListChangedFiles(string fromCommit, string toCommit);
         bool RepositoryExists();
     }
