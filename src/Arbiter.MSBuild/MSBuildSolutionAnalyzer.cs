@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Console = System.Console;
 
 namespace Arbiter.MSBuild
 {
@@ -99,15 +100,10 @@ namespace Arbiter.MSBuild
             }
         }
 
-        private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult
-        {
-            Distance = distance,
-            Project = project.Name,
-            FilePath = project.FilePath,
-            // Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
-            // evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
-            Assembly = $"{project.AssemblyName}.dll"
-        };
+
+        // Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
+        // evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
+        private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
 
         public void LoadSolution(string solution)
         {

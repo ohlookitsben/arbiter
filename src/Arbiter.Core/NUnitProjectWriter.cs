@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 
 namespace Arbiter.Core
@@ -30,7 +32,12 @@ namespace Arbiter.Core
             string assemblyBlock = string.Join($"{Environment.NewLine}        ", assemblyTags);
             string project = string.Format(_projectTemplate, assemblyBlock);
 
-            _fileSystem.WriteFile(path, project);
+            if (_fileSystem.File.Exists(path))
+            {
+                _fileSystem.File.Delete(path);
+            }
+
+            _fileSystem.File.WriteAllText(path, project);
         }
     }
 }

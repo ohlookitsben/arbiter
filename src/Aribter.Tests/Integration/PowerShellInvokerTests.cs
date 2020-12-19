@@ -15,10 +15,7 @@ namespace Arbiter.Tests.Integration
         [SetUp]
         public void SetUp()
         {
-            _invoker = new PowerShellInvoker
-            {
-                WorkingDirectory = TestContext.CurrentContext.WorkDirectory
-            };
+            _invoker = new PowerShellInvoker(TestContext.CurrentContext.WorkDirectory);
         }
 
         [Test]
@@ -34,7 +31,7 @@ namespace Arbiter.Tests.Integration
         public void Invoke_WorkingDirectory_InvokesFromWorkingDirectory()
         {
             var workingDirectory = Directory.CreateDirectory(Guid.NewGuid().ToString());
-            _invoker.WorkingDirectory = workingDirectory.FullName;
+            _invoker = new PowerShellInvoker(workingDirectory.FullName);
 
             try
             {

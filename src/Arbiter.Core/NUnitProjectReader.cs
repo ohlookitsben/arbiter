@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Xml;
 
 namespace Arbiter.Core
@@ -15,7 +16,7 @@ namespace Arbiter.Core
         public List<string> ReadProject(string path)
         {
             var document = new XmlDocument();
-            document.LoadXml(_fileSystem.ReadFile(path));
+            document.LoadXml(_fileSystem.File.ReadAllText(path));
 
             var settings = document.SelectSingleNode("//Settings");
             string activeConfig = settings.Attributes["activeConfig"].Value.ToString();

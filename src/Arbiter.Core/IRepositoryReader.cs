@@ -4,7 +4,7 @@ namespace Arbiter.Core
 {
     public interface IRepositoryReader
     {
-        string WorkingDirectory { get; set; }
+        string WorkingDirectory { get; }
 
         bool CommitExists(string commit);
         bool CommitIsAncestor(string commit, string ancestor);

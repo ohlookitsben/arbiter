@@ -10,7 +10,7 @@ namespace Arbiter.Core
     {
         private readonly IPowerShellInvoker _invoker;
 
-        public string WorkingDirectory { get => _invoker.WorkingDirectory; set => _invoker.WorkingDirectory = value; }
+        public string WorkingDirectory { get => _invoker.WorkingDirectory; }
 
         public GitRepositoryReader(IPowerShellInvoker invoker)
         {

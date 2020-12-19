@@ -3,6 +3,8 @@ using Arbiter.MSBuild;
 using Autofac;
 using Moq;
 using Serilog;
+using System.Linq;
+using System.Reflection;
 
 namespace Arbiter.Tests
 {
@@ -11,9 +13,10 @@ namespace Arbiter.Tests
         public static IContainer ConfigureContainer()
         {
             var builder = new ContainerBuilder();
-            var assemblies = new[] { typeof(CommandBuilder).Assembly, typeof(ArbiterMSBuildLocator).Assembly };
-            builder.RegisterAssemblyTypes(assemblies).PublicOnly().AsSelf().AsImplementedInterfaces();
-            builder.RegisterInstance(new Mock<ILogger>().Object);
+            var assemblies = new[] { typeof(ArbiterRootCommand).Assembly, typeof(ArbiterMSBuildLocator).Assembly };
+            builder.RegisterAssemblyTypes(assemblies)
+                .PublicOnly().Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Any())
+                .AsSelf().AsImplementedInterfaces(); builder.RegisterInstance(new Mock<ILogger>().Object);
             return builder.Build();
         }
     }

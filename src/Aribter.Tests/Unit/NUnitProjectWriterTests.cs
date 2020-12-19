@@ -4,7 +4,10 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Xml;
 
 namespace Arbiter.Tests.Unit
@@ -13,15 +16,17 @@ namespace Arbiter.Tests.Unit
     [Category(TestCategory.Unit)]
     public class NUnitProjectWriterTests
     {
-        private FakeFileSystem _fileSystem;
+        private MockFileSystem _fileSystem;
         private NUnitProjectWriter _writer;
-        private readonly string _projectPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "arbiter.nunit");
+        private readonly string _projectPath = @"C:\build\arbiter.nunit";
 
         [SetUp]
         public void SetUp()
         {
-            _fileSystem = new FakeFileSystem();
+            _fileSystem = new MockFileSystem();
             _writer = new NUnitProjectWriter(_fileSystem);
+
+            _fileSystem.AddDirectory(@"C:\build");
         }
 
         [Test]
@@ -29,11 +34,12 @@ namespace Arbiter.Tests.Unit
         {
             _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
-            Assert.IsNotNull(_fileSystem.File);
-            Assert.IsNotEmpty(_fileSystem.File);
+            Assert.IsTrue(_fileSystem.File.Exists(_projectPath));
+            string fileContents = _fileSystem.File.ReadAllText(_projectPath);
+            Assert.IsNotEmpty(fileContents);
 
             var document = new XmlDocument();
-            document.LoadXml(_fileSystem.File);
+            document.LoadXml(fileContents);
         }
 
         [Test]
@@ -42,7 +48,8 @@ namespace Arbiter.Tests.Unit
             _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
             var document = new XmlDocument();
-            document.LoadXml(_fileSystem.File);
+            string fileContents = _fileSystem.File.ReadAllText(_projectPath);
+            document.LoadXml(fileContents);
 
             var root = document.SelectNodes("/NUnitProject");
             Assert.AreEqual(1, root.Count, "The project should have an NUnitProject node at the root.");
@@ -58,7 +65,8 @@ namespace Arbiter.Tests.Unit
             _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
             var document = new XmlDocument();
-            document.LoadXml(_fileSystem.File);
+            string fileContents = _fileSystem.File.ReadAllText(_projectPath);
+            document.LoadXml(fileContents);
 
             var settings = document.SelectSingleNode("//Settings");
             var activeConfig = settings.Attributes["activeConfig"];
@@ -72,7 +80,7 @@ namespace Arbiter.Tests.Unit
         {
             _writer.WriteProject(_projectPath, Array.Empty<string>(), Array.Empty<string>());
 
-            Assert.AreEqual(_projectPath, _fileSystem.FilePath);
+            Assert.IsTrue(_fileSystem.File.Exists(_projectPath));
         }
 
         [Test]
@@ -83,7 +91,8 @@ namespace Arbiter.Tests.Unit
             _writer.WriteProject(_projectPath, assemblies, assemblies);
 
             var document = new XmlDocument();
-            document.LoadXml(_fileSystem.File);
+            string fileContents = _fileSystem.File.ReadAllText(_projectPath);
+            document.LoadXml(fileContents);
 
             var assemblyNodes = document.SelectNodes("//assembly");
             Assert.AreEqual(assemblies.Count, assemblyNodes.Count, "An assembly node should exist for each assembly");
