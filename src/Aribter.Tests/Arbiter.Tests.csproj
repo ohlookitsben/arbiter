@@ -9,6 +9,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\SampleProjects\ClassLibraryWithComReference\bin\**" />
+    <Compile Remove="Data\SampleProjects\ClassLibraryWithComReference\obj\**" />
+    <Compile Remove="Data\SampleProjects\CppClrLibrary\Debug\**" />
+    <Compile Remove="Data\SampleProjects\WindowsFormsApp\obj\**" />
+    <EmbeddedResource Remove="Data\SampleProjects\ClassLibraryWithComReference\bin\**" />
+    <EmbeddedResource Remove="Data\SampleProjects\ClassLibraryWithComReference\obj\**" />
+    <EmbeddedResource Remove="Data\SampleProjects\CppClrLibrary\Debug\**" />
+    <EmbeddedResource Remove="Data\SampleProjects\WindowsFormsApp\obj\**" />
+    <None Remove="Data\SampleProjects\ClassLibraryWithComReference\bin\**" />
+    <None Remove="Data\SampleProjects\ClassLibraryWithComReference\obj\**" />
+    <None Remove="Data\SampleProjects\CppClrLibrary\Debug\**" />
+    <None Remove="Data\SampleProjects\WindowsFormsApp\obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Data\SampleProjects\ClassLibraryWithComReference\ClassLibraryWithComReference.csproj" />
+    <None Include="Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj" />
+    <None Include="Data\SampleProjects\SampleProjects.sln" />
+    <None Include="Data\SampleProjects\WindowsFormsApp\WindowsFormsApp.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Autofac" Version="6.1.0" />
     <PackageReference Include="Moq" Version="4.15.2" />
     <PackageReference Include="NUnit" Version="3.12.0" />

@@ -1,6 +1,7 @@
 .vs/
 bin/
 obj/
+*.vcxproj.user
 
 # Output files
 arbiter.log
