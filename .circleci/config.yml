@@ -10,6 +10,7 @@
      steps:
        - checkout
        - run: dotnet build --nologo -c Release
+       - run: $ProgressPreference = "SilentlyContinue"
        - run: Compress-Archive -LiteralPath .\src\Arbiter\bin\Release\net48 -DestinationPath .\arbiter.zip
        - persist_to_workspace:
           root: .
@@ -45,10 +46,7 @@
 
    main:
      jobs:
-      - build:
-          filters:
-            tags:
-              only: /^\d+\.\d+\.\d+$/
+      - build
       - test:
           requires:
            - build
