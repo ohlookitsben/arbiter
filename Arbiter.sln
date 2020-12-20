@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.Core", "src\Arbiter
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.MSBuild", "src\Arbiter.MSBuild\Arbiter.MSBuild.csproj", "{A036EEAE-B228-4548-8128-AAE0A3BDDBF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.Tests", "src\Aribter.Tests\Arbiter.Tests.csproj", "{1187B8EC-617D-487A-AD8D-DE3796A29E0B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.Tests", "src\Arbiter.Tests\Arbiter.Tests.csproj", "{007AC89F-D732-4654-9F91-ED820899E6A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,10 +37,10 @@ Global
 		{A036EEAE-B228-4548-8128-AAE0A3BDDBF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A036EEAE-B228-4548-8128-AAE0A3BDDBF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A036EEAE-B228-4548-8128-AAE0A3BDDBF8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1187B8EC-617D-487A-AD8D-DE3796A29E0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1187B8EC-617D-487A-AD8D-DE3796A29E0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1187B8EC-617D-487A-AD8D-DE3796A29E0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1187B8EC-617D-487A-AD8D-DE3796A29E0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{007AC89F-D732-4654-9F91-ED820899E6A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{007AC89F-D732-4654-9F91-ED820899E6A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{007AC89F-D732-4654-9F91-ED820899E6A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{007AC89F-D732-4654-9F91-ED820899E6A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
