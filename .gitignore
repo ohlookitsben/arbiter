@@ -1,3 +1,4 @@
+# Visual Studio files
 .vs/
 bin/
 obj/
@@ -6,3 +7,10 @@ obj/
 # Output files
 arbiter.log
 arbiter.nunit
+TestResult.xml
+
+# Local only data
+Default/
+lib/
+NativeImage/
+tools/

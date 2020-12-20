@@ -19,6 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.MSBuild", "src\Arbi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arbiter.Tests", "src\Arbiter.Tests\Arbiter.Tests.csproj", "{007AC89F-D732-4654-9F91-ED820899E6A6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".circleci", ".circleci", "{3B8FE14B-F98F-4EC9-80F6-715B93432EC9}"
+	ProjectSection(SolutionItems) = preProject
+		.circleci\config.yml = .circleci\config.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +49,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3B8FE14B-F98F-4EC9-80F6-715B93432EC9} = {DB22E739-BDE8-4A70-8801-D85D93ABA48D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {310F102F-9BA7-4FBC-86DA-A3DA1C091312}

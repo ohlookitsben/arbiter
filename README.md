@@ -29,3 +29,5 @@ output:
 - An installation of MSBuild, compatible with [MSBuildLocator](https://github.com/Microsoft/MSBuildLocator)
 - An installation of [git](https://git-scm.com/) available on the PATH.
 - .NET Framework 4.8
+
+[![build](https://circleci.com/gh/ohlookitsben/arbiter.svg?style=svg)](https://circleci.com/gh/ohlookitsben/arbiter)

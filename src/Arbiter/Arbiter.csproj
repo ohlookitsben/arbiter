@@ -8,6 +8,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
   </PropertyGroup>
 
   <ItemGroup>
