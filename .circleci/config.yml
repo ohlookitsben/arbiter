@@ -10,7 +10,7 @@
      steps:
        - checkout
        - run: dotnet build --nologo -c Release
-       - run: Compress-Archive -LiteralPath src\Arbiter\bin\Release\net48 -DestinationPath .\arbiter.zip
+       - run: Compress-Archive -LiteralPath .\src\Arbiter\bin\Release\net48 -DestinationPath .\arbiter.zip
        - persist_to_workspace:
           root: .
           paths: 
