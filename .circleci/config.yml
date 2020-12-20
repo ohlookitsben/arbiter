@@ -10,13 +10,21 @@
      steps:
        - checkout
        - run: dotnet build --nologo
+       - persist_to_workspace:
+          root: .
+          paths: 
+            - src\Arbiter.Tests\bin\Debug\net48
 
    test:
      executor: win/default
 
      steps:
+        - attach_workspace:
+            at: workspace
         - run: nuget install NUnit.ConsoleRunner -Version 3.11.1 -OutputDirectory .\tools
-        - run: .\tools\NUnit.ConsoleRunner.3.11.1\tools\nunit3-console.exe .\src\Arbiter.Tests\bin\Debug\net48\Arbiter.Tests.dll
+        - run: .\tools\NUnit.ConsoleRunner.3.11.1\tools\nunit3-console.exe .\workspace\src\Arbiter.Tests\bin\Debug\net48\Arbiter.Tests.dll
+        - store_test_results:
+           path: TestResults.xml
  
  workflows:
    version: 2
