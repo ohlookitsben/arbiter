@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Arbiter": {
-      "commandName": "Project",
-      "commandLineArgs": ".\\Arbiter.sln 7852ee1 4e3aeb3 all.nunit Default",
-      "workingDirectory": "C:\\Users\\benwi\\source\\repos\\Arbiter"
-    }
-  }
-}

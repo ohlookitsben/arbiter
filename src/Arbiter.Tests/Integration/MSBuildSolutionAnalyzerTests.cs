@@ -5,34 +5,78 @@ using Serilog.Sinks.InMemory;
 using System.IO;
 using Arbiter.MSBuild;
 using Serilog.Events;
-using System.Linq;
 
 namespace Arbiter.Tests.Integration
 {
     [TestFixture, Category("Integration")]
     public class MSBuildSolutionAnalyzerTests
     {
+        private ArbiterMSBuildLocator _locator;
+        private ILogger _logger;
+
         [SetUp]
         public void SetUp()
         {
-            new ArbiterMSBuildLocator().RegisterDefaults();
-        }
-
-        // Copying assemblies from C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64 can fix the COM issues to do with assembly loading.
-        // Required assemblies:
-        // - Microsoft.Build.dll
-        // - Microsoft.Build.Framework.dll
-        // - Microsoft.Build.Tasks.Core.dll
-        // - Microsoft.Build.Utilities.Core.dll
-        [Test, Explicit("TODO: Fix this test")]
-        public void LoadSolution_WithCppAndCOM_Succeeds()
-        {
-            var logger = new LoggerConfiguration()
+            _locator = new ArbiterMSBuildLocator();
+            _locator.RegisterDefaults();
+            _logger = new LoggerConfiguration()
                 .WriteTo.InMemory()
                 .MinimumLevel.Warning()
                 .CreateLogger();
-            var analyzer = new MSBuildSolutionAnalyzer(logger);
+
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Always clean in case there is dirty state left over from a failed test or setup.
+            _locator.Clean();
+            InMemorySink.Instance.Dispose();
+        }
+
+        [Test, Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied.")]
+        public void LoadSolution_ProjectWithComReferences_Succeeds()
+        {
+            _locator.SetupCom();
+            var analyzer = new MSBuildSolutionAnalyzer(_logger);
+            string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\ClassLibraryWithComReference\ClassLibraryWithComReference.sln");
+
+            analyzer.LoadSolution(solutionPath);
+
+            var renderedEvents = RenderLogEvents(InMemorySink.Instance.LogEvents);
+            Assert.IsEmpty(renderedEvents, "No warnings or errors should be logged during load");
+        }
+
+        [Test]
+        public void LoadSolution_StandaloneWindowsFormsApp_Succeeds()
+        {
+            var analyzer = new MSBuildSolutionAnalyzer(_logger);
+            string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.sln");
+
+            analyzer.LoadSolution(solutionPath);
+
+            var renderedEvents = RenderLogEvents(InMemorySink.Instance.LogEvents);
+            Assert.IsEmpty(renderedEvents, "No warnings or errors should be logged during load");
+        }
+
+        [Test, Ignore("C++ support is not implemented.")]
+        public void LoadSolution_CppClrLibrary_Succeeds()
+        {
+            var analyzer = new MSBuildSolutionAnalyzer(_logger);
+            string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
+
+            analyzer.LoadSolution(solutionPath);
+
+            var renderedEvents = RenderLogEvents(InMemorySink.Instance.LogEvents);
+            Assert.IsEmpty(renderedEvents, "No warnings or errors should be logged during load");
+        }
+
+        [Test, Ignore("C++ support is not implemented.")]
+        public void LoadSolution_CombinedApp_Succeeds()
+        {
+            var analyzer = new MSBuildSolutionAnalyzer(_logger);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\SampleProjects.sln");
+
             analyzer.LoadSolution(solutionPath);
 
             var renderedEvents = RenderLogEvents(InMemorySink.Instance.LogEvents);

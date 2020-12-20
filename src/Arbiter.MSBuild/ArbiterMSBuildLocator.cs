@@ -9,7 +9,8 @@ namespace Arbiter.MSBuild
 {
     public class ArbiterMSBuildLocator : IMSBuildLocator
     {
-        private VisualStudioInstance _registeredInstance;
+        // Only one registration works, so being static is not an issue here.
+        private static VisualStudioInstance _registeredInstance;
 
         /// <summary>
         /// When the ComReference target exists in a project, assembly resolution fails. Copying the assemblies
@@ -26,6 +27,12 @@ namespace Arbiter.MSBuild
 
         public void RegisterDefaults()
         {
+            if (_registeredInstance != null)
+            {
+                // An instance has been registered. Registering again is an error.
+                return;
+            }
+
             _registeredInstance = MSBuildLocator.RegisterDefaults();
         }
 
@@ -82,7 +89,14 @@ namespace Arbiter.MSBuild
                 string destination = Path.Combine(applicationDirectory, fileName);
                 if (File.Exists(destination))
                 {
-                    File.Delete(destination);
+                    try
+                    {
+                        File.Delete(destination);
+                    }
+                    catch
+                    {
+                        // This is only a best-effort clean.
+                    }
                 }
             }
         }

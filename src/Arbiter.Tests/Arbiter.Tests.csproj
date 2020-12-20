@@ -15,6 +15,7 @@
     <None Remove="Data\**\bin\**" />
     <None Remove="Data\**\obj\**" />
     <None Remove="Data\**\Debug\**" />
+    <None Remove="Data\SampleProjects\.vs\**" />
     <Compile Update="Data\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>

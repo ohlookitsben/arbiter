@@ -3,6 +3,8 @@
 bin/
 obj/
 *.vcxproj.user
+*.cache
+*launchSettings.json
 
 # Output files
 arbiter.log

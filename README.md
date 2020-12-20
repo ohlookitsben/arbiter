@@ -30,4 +30,6 @@ output:
 - An installation of [git](https://git-scm.com/) available on the PATH.
 - .NET Framework 4.8
 
+## Build
+
 [![build](https://circleci.com/gh/ohlookitsben/arbiter.svg?style=svg)](https://circleci.com/gh/ohlookitsben/arbiter)
