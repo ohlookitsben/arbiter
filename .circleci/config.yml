@@ -10,21 +10,35 @@
      steps:
        - checkout
        - run: dotnet build --nologo -c Release
+       - run: Compress-Archive -LiteralPath src\Arbiter\bin\Release\net48 -DestinationPath .\arbiter.zip
        - persist_to_workspace:
           root: .
           paths: 
-            - src\Arbiter.Tests\bin\Release\net48
+            - .\src\Arbiter.Tests\bin\Release\net48
+            - .\arbiter.zip
 
    test:
      executor: win/default
 
      steps:
         - attach_workspace:
-            at: workspace
+            at: .\workspace
         - run: nuget install NUnit.ConsoleRunner -Version 3.11.1 -OutputDirectory .\tools
         - run: .\tools\NUnit.ConsoleRunner.3.11.1\tools\nunit3-console.exe .\workspace\src\Arbiter.Tests\bin\Release\net48\Arbiter.Tests.dll
         - store_test_results:
            path: TestResult.xml
+
+   publish-github-release:
+     docker:
+       - image: cibuilds/github:0.10
+     steps:
+       - attach_workspace:
+           at: ./workspace
+       - run:
+           name: "Publish Release on GitHub"
+           command: |
+             VERSION=$(my-binary --version)
+             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./workspace/arbiter.zip
  
  workflows:
    version: 2
