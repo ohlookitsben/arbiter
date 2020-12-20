@@ -9,11 +9,11 @@
     
      steps:
        - checkout
-       - run: dotnet build --nologo
+       - run: dotnet build --nologo -c Release
        - persist_to_workspace:
           root: .
           paths: 
-            - src\Arbiter.Tests\bin\Debug\net48
+            - src\Arbiter.Tests\bin\Release\net48
 
    test:
      executor: win/default
@@ -22,7 +22,7 @@
         - attach_workspace:
             at: workspace
         - run: nuget install NUnit.ConsoleRunner -Version 3.11.1 -OutputDirectory .\tools
-        - run: .\tools\NUnit.ConsoleRunner.3.11.1\tools\nunit3-console.exe .\workspace\src\Arbiter.Tests\bin\Debug\net48\Arbiter.Tests.dll
+        - run: .\tools\NUnit.ConsoleRunner.3.11.1\tools\nunit3-console.exe .\workspace\src\Arbiter.Tests\bin\Release\net48\Arbiter.Tests.dll
         - store_test_results:
            path: TestResult.xml
  
@@ -34,3 +34,21 @@
        - test:
           requires:
            - build
+
+   publish:
+     jobs:
+      - build:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+      - test:
+          requires:
+           - build
+      - publish-github-release:
+          requires:
+          - test
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/      
