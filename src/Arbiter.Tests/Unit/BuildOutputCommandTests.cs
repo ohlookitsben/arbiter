@@ -1,12 +1,13 @@
 ﻿using Arbiter.Core;
 using Arbiter.Core.Analysis;
-using Arbiter.Tests.Fakes;
 using Autofac;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Builder;
+using System.CommandLine.IO;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Xml;
@@ -50,13 +51,13 @@ namespace Arbiter.Tests.Unit
                 c.RegisterInstance(_analyzer.Object);
             });
 
-            _args = new string[] 
-            { 
-                "--solution", @"C:\build\MySolution.sln", 
-                "--from-commit", "commit", 
-                "--to-commit", "other_commit", 
-                "--nunit-project", @"C:\build\all.nunit", 
-                "--nunit-configuration", "Default" 
+            _args = new string[]
+            {
+                "--solution", @"C:\build\MySolution.sln",
+                "--from-commit", "commit",
+                "--to-commit", "other_commit",
+                "--nunit-project", @"C:\build\all.nunit",
+                "--nunit-configuration", "Default"
             };
             _command = scope.Resolve<ArbiterRootCommand>();
         }
@@ -106,17 +107,17 @@ namespace Arbiter.Tests.Unit
             };
             _analyzer.Setup(a => a.ExcludeNonTestProjects(It.IsAny<IEnumerable<AnalysisResult>>())).Returns(dependentTestProjects);
 
-            var console = new FakeConsole();
+            var console = new TestConsole();
             int result = _command.InvokeAsync(_args, console).Result;
 
-            Assert.AreEqual(0, result, "Command should execute successfully. Error stream contents:\n{0}", console.ErrorString);
+            Assert.AreEqual(0, result, "Command should execute successfully. Console contents:{0}{1}", Environment.NewLine, console.ToString());
 
             var document = new XmlDocument();
             string fileContents = _fileSystem.File.ReadAllText(@"C:\build\arbiter.nunit");
             document.LoadXml(fileContents);
 
             var assemblyNode = document.SelectSingleNode("//assembly");
-            var assemblyPath = assemblyNode.Attributes["path"].Value;
+            string assemblyPath = assemblyNode.Attributes["path"].Value;
             Assert.AreEqual(@"SomeProject.Tests\bin\Debug\SomeProject.Tests.dll", assemblyPath);
         }
     }

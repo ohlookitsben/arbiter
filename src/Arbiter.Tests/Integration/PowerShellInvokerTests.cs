@@ -13,10 +13,7 @@ namespace Arbiter.Tests.Integration
         private PowerShellInvoker _invoker;
 
         [SetUp]
-        public void SetUp()
-        {
-            _invoker = new PowerShellInvoker(TestContext.CurrentContext.WorkDirectory);
-        }
+        public void SetUp() => _invoker = new PowerShellInvoker(TestContext.CurrentContext.WorkDirectory);
 
         [Test]
         public void Invoke_PowerShellExists()

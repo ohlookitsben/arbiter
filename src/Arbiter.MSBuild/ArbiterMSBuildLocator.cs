@@ -44,7 +44,7 @@ namespace Arbiter.MSBuild
             }
 
             var assemblyPaths = _comResolutionAssemblies.Select(a => Path.Combine(_registeredInstance.MSBuildPath, a));
-            foreach (var path in assemblyPaths)
+            foreach (string path in assemblyPaths)
             {
                 if (!File.Exists(path))
                 {
@@ -53,7 +53,7 @@ namespace Arbiter.MSBuild
             }
 
             string applicationDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            foreach (var path in assemblyPaths)
+            foreach (string path in assemblyPaths)
             {
                 string fileName = Path.GetFileName(path);
                 string destination = Path.Combine(applicationDirectory, fileName);
@@ -74,7 +74,7 @@ namespace Arbiter.MSBuild
             }
 
             var assemblyPaths = _comResolutionAssemblies.Select(a => Path.Combine(_registeredInstance.MSBuildPath, a));
-            foreach (var path in assemblyPaths)
+            foreach (string path in assemblyPaths)
             {
                 if (!File.Exists(path))
                 {
@@ -83,7 +83,7 @@ namespace Arbiter.MSBuild
             }
 
             string applicationDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            foreach (var path in assemblyPaths)
+            foreach (string path in assemblyPaths)
             {
                 string fileName = Path.GetFileName(path);
                 string destination = Path.Combine(applicationDirectory, fileName);

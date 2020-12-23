@@ -3,6 +3,8 @@ using Arbiter.MSBuild;
 using Autofac;
 using Moq;
 using Serilog;
+using System.CommandLine;
+using System.CommandLine.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -17,6 +19,9 @@ namespace Arbiter.Tests
             builder.RegisterAssemblyTypes(assemblies)
                 .PublicOnly().Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Any())
                 .AsSelf().AsImplementedInterfaces(); builder.RegisterInstance(new Mock<ILogger>().Object);
+
+            builder.RegisterType<TestConsole>().As<IConsole>();
+
             return builder.Build();
         }
     }

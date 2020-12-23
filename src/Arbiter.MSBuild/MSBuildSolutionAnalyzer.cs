@@ -6,19 +6,23 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Console = System.Console;
+using ILogger = Serilog.ILogger;
 
 namespace Arbiter.MSBuild
 {
+    /// <inheritdoc/>
     public class MSBuildSolutionAnalyzer : IMSBuildSolutionAnalyzer
     {
         private const int _distanceHardLimit = 100;
-        private readonly Serilog.ILogger _log;
+        private readonly ILogger _log;
         private Solution _solution;
         private int _loadErrorCount = 0;
         private int _loadWarningCount;
 
-        public MSBuildSolutionAnalyzer(Serilog.ILogger log)
+        public MSBuildSolutionAnalyzer(ILogger log)
         {
             _log = log;
         }
@@ -35,6 +39,7 @@ namespace Arbiter.MSBuild
             {
                 foreach (var project in _solution.Projects)
                 {
+                    // TODO: What if it used to be in a project, but now isn't? e.g. deleted
                     if (projects.ContainsKey(project.Id))
                     {
                         continue;
@@ -71,6 +76,45 @@ namespace Arbiter.MSBuild
             return results.Values.ToList();
         }
 
+        public List<AnalysisResult> GetTopologicallySortedProjects()
+        {
+            if (_solution == null)
+            {
+                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
+            }
+
+            var graph = _solution.GetProjectDependencyGraph();
+            var sortedIds = graph.GetTopologicallySortedProjects().ToList();
+            var sortedResults = new List<AnalysisResult>();
+            for (int i = 0; i < sortedIds.Count; ++i)
+            {
+                var project = _solution.GetProject(sortedIds[i]);
+                sortedResults.Add(CreateAnalysisResult(project, i));
+            }
+
+            return sortedResults;
+        }
+
+        public List<Tuple<AnalysisResult, List<AnalysisResult>>> GetGraph()
+        {
+            if (_solution == null)
+            {
+                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
+            }
+
+            var graph = _solution.GetProjectDependencyGraph();
+            var sortedIds = graph.GetTopologicallySortedProjects().ToList();
+            var outputGraph = new List<Tuple<AnalysisResult, List<AnalysisResult>>>();
+            foreach (var id in sortedIds)
+            {
+                var project = _solution.GetProject(id);
+                var dependentProjects = graph.GetProjectsThatThisProjectDirectlyDependsOn(project.Id).Select(dependentId => _solution.GetProject(dependentId)); ;
+                outputGraph.Add(Tuple.Create(CreateAnalysisResult(project, 0), dependentProjects.Select(p => CreateAnalysisResult(p, 0)).ToList()));
+            }
+
+            return outputGraph;
+        }
+
         private void FindDependentProjectsRecursively(ProjectDependencyGraph graph, Dictionary<ProjectId, AnalysisResult> results, int distance)
         {
             if (distance > _distanceHardLimit)
@@ -101,11 +145,13 @@ namespace Arbiter.MSBuild
         }
 
 
-        // Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
-        // evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
+        /// <remarks>
+        /// Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
+        /// evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
+        /// </remarks>
         private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
 
-        public void LoadSolution(string solution)
+        public async Task LoadSolution(string solution, CancellationToken token)
         {
             var workspace = MSBuildWorkspace.Create();
             workspace.WorkspaceFailed += LoadSolution_WorkspaceFailed;
@@ -113,16 +159,13 @@ namespace Arbiter.MSBuild
             progress.ProgressChanged += LoadSolution_ProgressChanged;
 
             Console.WriteLine();
-            var openTask = workspace.OpenSolutionAsync(solution, progress);
-            openTask.Wait();
+            _solution = await workspace.OpenSolutionAsync(solution, progress, token);
 
             Console.WriteLine();
             Console.WriteLine($"Solution opened with {_loadWarningCount} warnings and {_loadErrorCount} errors. See {Constants.LogFile} for more information.");
 
             _loadErrorCount = 0;
             _loadWarningCount = 0;
-
-            _solution = openTask.Result;
         }
 
         private void LoadSolution_ProgressChanged(object sender, ProjectLoadProgress e)
@@ -130,13 +173,16 @@ namespace Arbiter.MSBuild
             switch (e.Operation)
             {
                 case ProjectLoadOperation.Evaluate:
-                    Console.Write($"\rLoading project {Path.GetFileName(e.FilePath)} (Stage 1/3)");
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 1/3)");
                     break;
                 case ProjectLoadOperation.Build:
-                    Console.Write($"\rLoading project {Path.GetFileName(e.FilePath)} (Stage 2/3)");
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 2/3)");
                     break;
                 case ProjectLoadOperation.Resolve:
-                    Console.Write($"\rLoading project {Path.GetFileName(e.FilePath)} (Stage 3/3)");
+                    Console.SetCursorPosition(0, Console.CursorTop);
+                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 3/3)");
                     Console.WriteLine();
                     break;
             }
