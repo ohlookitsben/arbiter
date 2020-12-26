@@ -9,28 +9,28 @@ jobs:
     steps:
       - checkout
       - run:
-        name: build
-        command: dotnet build --nologo -c Release
+          name: build
+          command: dotnet build --nologo -c Release
       - run: 
-        name: test
-        command: dotnet test -c Release
+          name: test
+          command: dotnet test -c Release
       - run: 
-        name: publish
-        command: dotnet publish -c Release -o publish
+          name: publish
+          command: dotnet publish -c Release -o publish
       - persist_to_workspace:
-        root: .\publish
+          root: .\publish
         
   publish:
     docker:
       - image: 'cibuilds/github:0.10'
     steps:
       - attach_workspace:
-          at: ./
+          at: .
       - run: 
           name: compress
           command: >
             $ProgressPreference = "SilentlyContinue"; 
-            Compress-Archive -LiteralPath ./ -DestinationPath ./arbiter.zip
+            Compress-Archive -LiteralPath . -DestinationPath ./arbiter.zip
       - run:
           name: push
           command: > 
