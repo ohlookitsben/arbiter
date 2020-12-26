@@ -1,58 +1,56 @@
- version: 2.1
+version: 2.1
 
- orbs:
+orbs:
   win: circleci/windows@2.2.0
 
- jobs:
-   build:
-     executor: win/default     
-    
-     steps:
-       - checkout
-       - run: dotnet build --nologo -c Release
-       - run: $ProgressPreference = "SilentlyContinue"; Compress-Archive -LiteralPath .\src\Arbiter\bin\Release\net48 -DestinationPath .\arbiter.zip
-       - persist_to_workspace:
-          root: .
-          paths: 
-            - .\src\Arbiter.Tests\bin\Release\net48
-            - .\arbiter.zip
-
-   test:
-     executor: win/default
-
-     steps:
-        - attach_workspace:
-            at: .\workspace
-        - run: dotnet test
-        - store_test_results:
-           path: TestResult.xml
-
-   publish-github-release:
-     docker:
-       - image: cibuilds/github:0.10
-     steps:
-       - attach_workspace:
-           at: ./workspace
-       - run:
-           name: "Publish Release on GitHub"
-           command: |
-             VERSION=$(my-binary --version)
-             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./workspace/arbiter.zip
- 
- workflows:
-   version: 2
-
-   main:
-     jobs:
+jobs:
+  build:
+    executor: win/default
+    steps:
+      - checkout
+      - run:
+        name: build
+        command: dotnet build --nologo -c Release
+      - run: 
+        name: test
+        command: dotnet test -c Release
+      - run: 
+        name: publish
+        command: dotnet publish -c Release -o publish
+      - persist_to_workspace:
+        root: .\publish
+        
+  publish:
+    docker:
+      - image: 'cibuilds/github:0.10'
+    steps:
+      - attach_workspace:
+          at: ./
+      - run: 
+          name: compress
+          command: >
+            $ProgressPreference = "SilentlyContinue"; 
+            Compress-Archive -LiteralPath ./ -DestinationPath ./arbiter.zip
+      - run:
+          name: push
+          command: > 
+            VERSION=$(my-binary --version) 
+            ghr -t ${GITHUB_TOKEN} 
+                -u ${CIRCLE_PROJECT_USERNAME} 
+                -r ${CIRCLE_PROJECT_REPONAME} 
+                -c ${CIRCLE_SHA1} 
+                -delete ${VERSION} 
+                ./arbiter.zip
+workflows:
+  version: 2
+  main:
+    jobs:
       - build
-      - test:
+      - publish:
           requires:
-           - build
-      - publish-github-release:
-          requires:
-          - test
+            - build
           filters:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/      
+              only: /^\d+\.\d+\.\d+$/
