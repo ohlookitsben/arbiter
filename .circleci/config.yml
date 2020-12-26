@@ -19,6 +19,8 @@ jobs:
           command: dotnet publish -c Release -o publish
       - persist_to_workspace:
           root: .\publish
+          paths:
+            - .
         
   publish:
     docker:
