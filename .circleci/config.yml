@@ -8,6 +8,9 @@ jobs:
     executor: win/default
     steps:
       - checkout
+      - run
+          name: Setup build environment
+          command: export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
       - run:
           name: Build
           command: dotnet build --nologo -c Release
