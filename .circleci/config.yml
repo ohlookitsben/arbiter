@@ -9,14 +9,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: build
+          name: Build
           command: dotnet build --nologo -c Release
       - run: 
-          name: test
-          command: dotnet test -c Release
+          name: Test
+          command: dotnet test -c Release --no-restore
       - run: 
-          name: publish
-          command: dotnet publish -c Release -o publish
+          name: Publish
+          command: dotnet publish -c Release -o publish --no-restore
       - persist_to_workspace:
           root: .\publish
           paths:
@@ -29,12 +29,12 @@ jobs:
       - attach_workspace:
           at: .
       - run: 
-          name: compress
+          name: Build release package
           command: >
             $ProgressPreference = "SilentlyContinue"; 
             Compress-Archive -LiteralPath . -DestinationPath ./arbiter.zip
       - run:
-          name: push
+          name: Push to GitHub Releases
           command: > 
             VERSION=$(my-binary --version) 
             ghr -t ${GITHUB_TOKEN} 
