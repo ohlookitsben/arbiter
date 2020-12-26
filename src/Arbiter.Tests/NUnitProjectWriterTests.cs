@@ -9,7 +9,7 @@ using System.Xml;
 namespace Arbiter.Tests.Unit
 {
     [TestFixture]
-    [Category(TestCategory.Unit)]
+    [Category(TestCategory.Small)]
     public class NUnitProjectWriterTests
     {
         private MockFileSystem _fileSystem;

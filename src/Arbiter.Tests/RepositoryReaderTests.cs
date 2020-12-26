@@ -6,7 +6,7 @@ using static Arbiter.Tests.Fakes.FakePowerShellInvoker;
 namespace Arbiter.Tests.Unit
 {
     [TestFixture]
-    [Category(TestCategory.Unit)]
+    [Category(TestCategory.Small)]
     public class RepositoryReaderTests
     {
         private FakePowerShellInvoker _invoker;

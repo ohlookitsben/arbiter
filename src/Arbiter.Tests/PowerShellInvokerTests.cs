@@ -7,7 +7,7 @@ using System.Linq;
 namespace Arbiter.Tests.Integration
 {
     [TestFixture]
-    [Category("Integration")]
+    [Category(TestCategory.Medium)]
     public class PowerShellInvokerTests
     {
         private PowerShellInvoker _invoker;

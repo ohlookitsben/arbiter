@@ -1,5 +1,6 @@
 ﻿using Arbiter.Core;
 using Arbiter.Core.Analysis;
+using Arbiter.Tests.Helpers;
 using Autofac;
 using Moq;
 using NUnit.Framework;
@@ -15,7 +16,7 @@ using System.Xml;
 namespace Arbiter.Tests.Unit
 {
     [TestFixture]
-    [Category(TestCategory.Unit)]
+    [Category(TestCategory.Small)]
     public class BuildOutputCommandTests
     {
         private MockFileSystem _fileSystem;

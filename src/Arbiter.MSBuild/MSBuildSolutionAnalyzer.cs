@@ -1,15 +1,11 @@
-﻿using Arbiter.Core;
-using Arbiter.Core.Analysis;
+﻿using Arbiter.Core.Analysis;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Console = System.Console;
-using ILogger = Serilog.ILogger;
 
 namespace Arbiter.MSBuild
 {
@@ -17,29 +13,37 @@ namespace Arbiter.MSBuild
     public class MSBuildSolutionAnalyzer : IMSBuildSolutionAnalyzer
     {
         private const int _distanceHardLimit = 100;
-        private readonly ILogger _log;
-        private Solution _solution;
-        private int _loadErrorCount = 0;
-        private int _loadWarningCount;
+        private readonly IMSBuildSolutionLoader _loader;
 
-        public MSBuildSolutionAnalyzer(ILogger log)
+        public MSBuildSolutionAnalyzer(IMSBuildSolutionLoader loader)
         {
-            _log = log;
+            _loader = loader;
         }
 
         public List<string> FindContainingProjects(IEnumerable<string> files)
         {
-            if (_solution == null)
+            if (files ==  null)
             {
-                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
+                throw new ArgumentNullException(nameof(files));
             }
 
             var projects = new Dictionary<ProjectId, Project>();
             foreach (string file in files)
             {
-                foreach (var project in _solution.Projects)
+                foreach (var project in _loader.Solution.Projects)
                 {
-                    // TODO: What if it used to be in a project, but now isn't? e.g. deleted
+                    // Track modfications to the project itself as changes. For projects not using wildcards for files this
+                    // is enough to cover the case where a file is deleted. For any project with a wildcard, more sophisticated
+                    // handling is needed.
+                    if (file == project.FilePath)
+                    {
+                        projects.Add(project.Id, project);
+                    }
+
+                    // TODO: Handle C++ projects
+
+                    // TODO: Handle deletion in projects using wildcards.
+
                     if (projects.ContainsKey(project.Id))
                     {
                         continue;
@@ -57,17 +61,12 @@ namespace Arbiter.MSBuild
 
         public List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects)
         {
-            if (_solution == null)
-            {
-                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
-            }
-
-            var graph = _solution.GetProjectDependencyGraph();
+            var graph = _loader.Solution.GetProjectDependencyGraph();
             var results = new Dictionary<ProjectId, AnalysisResult>();
             int distance = 0;
             foreach (string project in projects)
             {
-                var projectObj = _solution.Projects.SingleOrDefault(p => p.FilePath == project);
+                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath == project);
                 results.Add(projectObj.Id, CreateAnalysisResult(projectObj, distance));
             }
 
@@ -78,17 +77,12 @@ namespace Arbiter.MSBuild
 
         public List<AnalysisResult> GetTopologicallySortedProjects()
         {
-            if (_solution == null)
-            {
-                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
-            }
-
-            var graph = _solution.GetProjectDependencyGraph();
+            var graph = _loader.Solution.GetProjectDependencyGraph();
             var sortedIds = graph.GetTopologicallySortedProjects().ToList();
             var sortedResults = new List<AnalysisResult>();
             for (int i = 0; i < sortedIds.Count; ++i)
             {
-                var project = _solution.GetProject(sortedIds[i]);
+                var project = _loader.Solution.GetProject(sortedIds[i]);
                 sortedResults.Add(CreateAnalysisResult(project, i));
             }
 
@@ -97,18 +91,13 @@ namespace Arbiter.MSBuild
 
         public List<Tuple<AnalysisResult, List<AnalysisResult>>> GetGraph()
         {
-            if (_solution == null)
-            {
-                throw new InvalidOperationException("A solution must be loaded before searching for dependent projects.");
-            }
-
-            var graph = _solution.GetProjectDependencyGraph();
+            var graph = _loader.Solution.GetProjectDependencyGraph();
             var sortedIds = graph.GetTopologicallySortedProjects().ToList();
             var outputGraph = new List<Tuple<AnalysisResult, List<AnalysisResult>>>();
             foreach (var id in sortedIds)
             {
-                var project = _solution.GetProject(id);
-                var dependentProjects = graph.GetProjectsThatThisProjectDirectlyDependsOn(project.Id).Select(dependentId => _solution.GetProject(dependentId)); ;
+                var project = _loader.Solution.GetProject(id);
+                var dependentProjects = graph.GetProjectsThatThisProjectDirectlyDependsOn(project.Id).Select(dependentId => _loader.Solution.GetProject(dependentId)); ;
                 outputGraph.Add(Tuple.Create(CreateAnalysisResult(project, 0), dependentProjects.Select(p => CreateAnalysisResult(p, 0)).ToList()));
             }
 
@@ -127,10 +116,10 @@ namespace Arbiter.MSBuild
             var ancestors = results.Values.Where(r => r.Distance == distance - 1).ToList();
             foreach (var project in ancestors)
             {
-                var projectObj = _solution.Projects.SingleOrDefault(p => p.FilePath == project.FilePath);
+                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath == project.FilePath);
                 var dependentProjectIds = graph.GetProjectsThatDirectlyDependOnThisProject(projectObj.Id);
                 var newDependentProjectIds = dependentProjectIds.Where(id => !results.ContainsKey(id));
-                var newDependentProjects = _solution.Projects.Where(p => newDependentProjectIds.Contains(p.Id));
+                var newDependentProjects = _loader.Solution.Projects.Where(p => newDependentProjectIds.Contains(p.Id));
                 foreach (var newProject in newDependentProjects)
                 {
                     results.Add(newProject.Id, CreateAnalysisResult(newProject, distance));
@@ -144,71 +133,18 @@ namespace Arbiter.MSBuild
             }
         }
 
-
         /// <remarks>
         /// Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
         /// evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
         /// </remarks>
         private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
 
-        public async Task LoadSolution(string solution, CancellationToken token)
-        {
-            var workspace = MSBuildWorkspace.Create();
-            workspace.WorkspaceFailed += LoadSolution_WorkspaceFailed;
-            var progress = new Progress<ProjectLoadProgress>();
-            progress.ProgressChanged += LoadSolution_ProgressChanged;
-
-            Console.WriteLine();
-            _solution = await workspace.OpenSolutionAsync(solution, progress, token);
-
-            Console.WriteLine();
-            Console.WriteLine($"Solution opened with {_loadWarningCount} warnings and {_loadErrorCount} errors. See {Constants.LogFile} for more information.");
-
-            _loadErrorCount = 0;
-            _loadWarningCount = 0;
-        }
-
-        private void LoadSolution_ProgressChanged(object sender, ProjectLoadProgress e)
-        {
-            switch (e.Operation)
-            {
-                case ProjectLoadOperation.Evaluate:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 1/3)");
-                    break;
-                case ProjectLoadOperation.Build:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 2/3)");
-                    break;
-                case ProjectLoadOperation.Resolve:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 3/3)");
-                    Console.WriteLine();
-                    break;
-            }
-        }
-
-        private void LoadSolution_WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
-        {
-            switch (e.Diagnostic.Kind)
-            {
-                case WorkspaceDiagnosticKind.Failure:
-                    _log.Warning($"LoadSolution_WorkspaceFailed: {e.Diagnostic.Message}");
-                    ++_loadErrorCount;
-                    break;
-                case WorkspaceDiagnosticKind.Warning:
-                    _log.Information($"LoadSolution_WorkspaceFailed: {e.Diagnostic.Message}");
-                    ++_loadWarningCount;
-                    break;
-            }
-        }
-
         public List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects)
         {
             var testProjects = new List<AnalysisResult>();
             foreach (var project in dependentProjects)
             {
-                var projectObj = _solution.Projects.Single(p => p.FilePath == project.FilePath);
+                var projectObj = _loader.Solution.Projects.Single(p => p.FilePath == project.FilePath);
                 var referencedAssemblies = projectObj.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
                 bool isTestAssembly = referencedAssemblies.Any(r => Path.GetFileName(r.Display) == "nunit.framework.dll");
                 if (isTestAssembly)
@@ -219,5 +155,7 @@ namespace Arbiter.MSBuild
 
             return testProjects;
         }
+
+        public Task LoadSolution(string fullName, CancellationToken token) => _loader.LoadSolution(fullName, token);
     }
 }

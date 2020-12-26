@@ -8,7 +8,7 @@ using System.CommandLine.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Arbiter.Tests
+namespace Arbiter.Tests.Helpers
 {
     public static class ContainerHelper
     {

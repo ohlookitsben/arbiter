@@ -25,6 +25,7 @@ namespace Arbiter.Core.Commands
             Handler = CommandHandler.Create<FileInfo, CancellationToken>(ExecuteHandler);
         }
 
+        //https://dreampuf.github.io/GraphvizOnline
         public async Task<int> ExecuteHandler(FileInfo solution, CancellationToken token)
         {
             await _analyzer.LoadSolution(solution.FullName, token);

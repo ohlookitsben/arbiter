@@ -7,11 +7,6 @@ namespace Arbiter.Core.Analysis
 {
     public interface IMSBuildSolutionAnalyzer
     {
-        /// <summary>
-        /// Open a solution file and all referenced projects.
-        /// </summary>
-        Task LoadSolution(string solution, CancellationToken token);
-
         List<string> FindContainingProjects(IEnumerable<string> files);
         List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects);
         List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects);
@@ -26,5 +21,10 @@ namespace Arbiter.Core.Analysis
         /// Returns a graph of node -> descendant nodes based on the solution analysis.
         /// </summary>
         List<Tuple<AnalysisResult, List<AnalysisResult>>> GetGraph();
+
+        /// <summary>
+        /// Open a solution file and all referenced projects.
+        /// </summary>
+        Task LoadSolution(string fullName, CancellationToken token);
     }
 }
