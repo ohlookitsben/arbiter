@@ -15,7 +15,7 @@ namespace Arbiter.Tests.Integration
     public class MSBuildSolutionAnalyzer_CsprojTests
     {
         private MSBuildSolutionAnalyzer _analyzer;
-        private static readonly string CsprojSolution = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.sln");
+        private static readonly string _csprojSolution = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.sln");
 
         [SetUp]
         public void SetUp()
@@ -25,14 +25,14 @@ namespace Arbiter.Tests.Integration
             locator.RegisterDefaults();
             locator.Clean();
 
-            var container = ContainerHelper.ConfigureContainer();
+            var container = ContainerHelper.ConfigureContainer().WithRealFileSystem().Build();
             _analyzer = container.Resolve<MSBuildSolutionAnalyzer>();
         }
 
         [Test]
         public async Task FindContainingProjects_ProjectFileIsChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(CsprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_csprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.csproj");
             var files = new List<string> { project };
@@ -46,7 +46,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_SourceFileIsChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(CsprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_csprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.csproj");
             string file = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\Form1.cs");
@@ -61,7 +61,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_MultipleSourceFilesAreChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(CsprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_csprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.csproj");
             string file1 = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\Form1.cs");
@@ -77,7 +77,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_FileNotInProjectChanged_DoesNotReturnProject()
         {
-            await _analyzer.LoadSolution(CsprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_csprojSolution, CancellationToken.None);
 
             string doesntExist = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\FileDoesntExist.cs");
             var files = new List<string> { doesntExist };

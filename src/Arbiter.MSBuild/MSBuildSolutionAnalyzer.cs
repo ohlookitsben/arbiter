@@ -1,9 +1,11 @@
-﻿using Arbiter.Core.Analysis;
+﻿using Arbiter.Core;
+using Arbiter.Core.Analysis;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,7 +24,7 @@ namespace Arbiter.MSBuild
 
         public List<string> FindContainingProjects(IEnumerable<string> files)
         {
-            if (files ==  null)
+            if (files == null)
             {
                 throw new ArgumentNullException(nameof(files));
             }
@@ -31,7 +33,7 @@ namespace Arbiter.MSBuild
             var cppProjects = new Dictionary<Guid, CppProject>();
             foreach (string file in files)
             {
-                if (file == _loader.Solution.FilePath)
+                if (file.Equals(_loader.Solution.FilePath, StringComparison.OrdinalIgnoreCase))
                 {
                     // If the solution itself has changed, e.g. a project has been added or deleted, the handling we have for what
                     // dependencies have changed doesn't provide very good guarantees - especially in the case that a project is
@@ -51,7 +53,7 @@ namespace Arbiter.MSBuild
                     // Track modfications to the project itself as changes. For projects not using wildcards for files this
                     // is enough to cover the case where a file is deleted. For any project with a wildcard, more sophisticated
                     // handling is needed.
-                    if (file == project.FilePath)
+                    if (file.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
                         projects.Add(project.Id, project);
 
@@ -60,7 +62,7 @@ namespace Arbiter.MSBuild
 
                     // TODO: Handle deletion in projects using wildcards.
 
-                    if (project.Documents.Any(d => d.FilePath == file))
+                    if (project.Documents.Any(d => d.FilePath.Equals(file, StringComparison.OrdinalIgnoreCase)))
                     {
                         projects.Add(project.Id, project);
                     }
@@ -75,14 +77,14 @@ namespace Arbiter.MSBuild
 
                     // Track modfications to the project itself as changes. C++ projects don't support wildcards so this is
                     // sufficient to cover source files in the project being deleted.
-                    if (file == project.FilePath)
+                    if (file.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
                         cppProjects.Add(project.Id, project);
 
                         continue;
                     }
 
-                    if (project.DocumentPaths.Any(d => d == file))
+                    if (project.DocumentPaths.Any(d => d.Equals(file, StringComparison.OrdinalIgnoreCase)))
                     {
                         cppProjects.Add(project.Id, project);
                     }
@@ -102,7 +104,7 @@ namespace Arbiter.MSBuild
             int distance = 0;
             foreach (string project in projects)
             {
-                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath == project);
+                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath.Equals(project, StringComparison.OrdinalIgnoreCase));
                 if (projectObj != null)
                 {
                     results.Add(projectObj.Id, CreateAnalysisResult(projectObj, distance));
@@ -111,7 +113,7 @@ namespace Arbiter.MSBuild
                 }
 
                 // This may be a C++ project. Search for it there before failing.
-                var cppProject = _loader.CppProjects.SingleOrDefault(p => p.FilePath == project);
+                var cppProject = _loader.CppProjects.SingleOrDefault(p => p.FilePath.Equals(project, StringComparison.OrdinalIgnoreCase));
                 if (cppProject == null)
                 {
                     throw new ArgumentException($"No project found in the solution at: {project}");
@@ -131,9 +133,7 @@ namespace Arbiter.MSBuild
 
             FindDependentProjectsRecursively(graph, results, distance);
 
-            // TODO: Handle dependencies on C++ projects.
-
-            return results.Values.ToList();
+            return results.Values.Concat(cppResults.Values).ToList();
         }
 
         public List<AnalysisResult> GetTopologicallySortedProjects()
@@ -177,7 +177,7 @@ namespace Arbiter.MSBuild
             var ancestors = results.Values.Where(r => r.Distance == distance - 1).ToList();
             foreach (var project in ancestors)
             {
-                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath == project.FilePath);
+                var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
                 var dependentProjectIds = graph.GetProjectsThatDirectlyDependOnThisProject(projectObj.Id);
                 var newDependentProjectIds = dependentProjectIds.Where(id => !results.ContainsKey(id));
                 var newDependentProjects = _loader.Solution.Projects.Where(p => newDependentProjectIds.Contains(p.Id));
@@ -200,14 +200,14 @@ namespace Arbiter.MSBuild
         /// </remarks>
         private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
 
-        private AnalysisResult CreateAnalysisResult(CppProject cppProject, int distance) => new AnalysisResult(cppProject.Name, cppProject.FilePath, distance, $"{cppProject.AssemblyName}.dll");
+        private static AnalysisResult CreateAnalysisResult(CppProject cppProject, int distance) => new AnalysisResult(cppProject.Name, cppProject.FilePath, distance, $"{cppProject.AssemblyName}.dll");
 
         public List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects)
         {
             var testProjects = new List<AnalysisResult>();
             foreach (var project in dependentProjects)
             {
-                var projectObj = _loader.Solution.Projects.Single(p => p.FilePath == project.FilePath);
+                var projectObj = _loader.Solution.Projects.Single(p => p.FilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
                 bool isTestAssembly = ProjectReferencesAssembly(projectObj, "nunit.framework.dll");
                 if (isTestAssembly)
                 {
@@ -220,15 +220,42 @@ namespace Arbiter.MSBuild
 
         private static bool ProjectReferencesAssembly(Project project, string assembly)
         {
-            var referencedAssemblies = project.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
-            return referencedAssemblies.Any(r => Path.GetFileName(r.Display) == assembly);
+            var referencedAssemblies = project.MetadataReferences.Where(m => m.Properties.Kind == MetadataImageKind.Assembly);
+            return referencedAssemblies.Any(a => Path.GetFileName(a.Display) == assembly);
         }
 
+        /// <summary>
+        /// Attempt to find references to the C++ project in the C# project. First by id, then by name/path. Matching by id looks like it will always
+        /// fail due to <see cref="MSBuildProjectLoader.Worker.ResolvedReferenceBuilder.ResolveReferencesAsync"/> which will create a dummy id for
+        /// unrecognised projects, rather than reading the real id out of the solution file.
+        /// </summary>
         private static bool ProjectReferencesProject(Project project, CppProject cppProject)
         {
-            var referencedProjects = project.AllProjectReferences.Select(p => p.ProjectId);
-            var referencedAssemblies = project.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Module);
-            return referencedAssemblies.Any(r => Path.GetFileName(r.Display) == cppProject.Name);
+            var referencedProjectIds = project.AllProjectReferences.Select(p => p.ProjectId);
+            // Roslyn doesn't set ids for unrecognised projects so this probably won't match.
+            bool anyIdsMatch = referencedProjectIds.Any(p => p.Id == cppProject.Id);
+            if (anyIdsMatch)
+            {
+                return true;
+            }
+
+            // Match on (debug) name since id is expected to fail.
+            var debugNameExpression = new Regex($@"#{Constants.GuidExpression} - (?<DebugName>.*)\)");
+            var debugNames = referencedProjectIds.Select(p => debugNameExpression.Match(p.ToString()).Groups["DebugName"].Value);
+            // Debug names contain relative paths to the referenced project. Turn them into absolute paths so they can be matched to the C++ projects.
+            string root = new FileInfo(project.FilePath).DirectoryName;
+            foreach (var projectId in referencedProjectIds)
+            {
+                string debugName = debugNameExpression.Match(projectId.ToString()).Groups["DebugName"].Value;
+                string referencePath = Path.Combine(root, debugName);
+                string canonicalPath = Path.GetFullPath(referencePath);
+                if (canonicalPath.Equals(cppProject.FilePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public Task LoadSolution(string fullName, CancellationToken token) => _loader.LoadSolution(fullName, token);

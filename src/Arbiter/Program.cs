@@ -5,13 +5,11 @@ using AutofacSerilogIntegration;
 using Serilog;
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 
 namespace Arbiter
 {

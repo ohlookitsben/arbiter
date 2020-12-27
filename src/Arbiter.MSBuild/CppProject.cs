@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
-using Microsoft.CodeAnalysis;
 
 namespace Arbiter.MSBuild
 {
     public class CppProject
     {
-        /// <summary>
-        /// A fake version of <see cref="Project.Id"/>. Might match the real project id if we could find a reference
-        /// to it inside <see cref="Project.AllProjectReferences"/>. In this case <see cref="HasRealId"/> will be true;
-        /// </summary>
-        public Guid Id { get; private set; } = Guid.NewGuid();
+        private Guid? _id;
 
         /// <summary>
-        /// Whether the <see cref="Id"/> is the real project id.
+        /// The project id in the solution file.
         /// </summary>
-        public bool HasRealId { get; private set; }
+        /// <exception cref="InvalidOperationException">The id has not been set yet.</exception>
+        public Guid Id => _id ?? throw new InvalidOperationException("Id has not been set. Call SetId before attempting to access the project id.");
 
         public string FilePath { get; private set; } = string.Empty;
 
@@ -78,10 +74,9 @@ namespace Arbiter.MSBuild
             // TODO: Do we also need to load references from <ItemGroup> <Reference Include="Foo.dll" /> </ItemGroup>?
         }
 
-        public void SetRealId(Guid id)
+        public void SetId(Guid id)
         {
-            Id = id;
-            HasRealId = true;
+            _id = id;
         }
 
         private void AddAbsolutePath(XmlNode itemNode, string projectDirectory)

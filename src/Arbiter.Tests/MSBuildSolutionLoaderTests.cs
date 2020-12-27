@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Arbiter.Tests.Integration
         private ArbiterMSBuildLocator _locator;
         private ILogger _logger;
         private IConsole _console;
+        private IFileSystem _fileSystem;
 
         [SetUp]
         public void SetUp()
@@ -33,6 +35,7 @@ namespace Arbiter.Tests.Integration
                 .MinimumLevel.Warning()
                 .CreateLogger();
             _console = new TestConsole();
+            _fileSystem = new FileSystem();
         }
 
         [TearDown]
@@ -48,7 +51,7 @@ namespace Arbiter.Tests.Integration
         public async Task LoadSolution_ProjectWithComReferences_Succeeds()
         {
             _locator.SetupCom();
-            var loader = new MSBuildSolutionLoader(_logger, _console);
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\ClassLibraryWithComReference\ClassLibraryWithComReference.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -63,7 +66,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task LoadSolution_StandaloneWindowsFormsApp_Succeeds()
         {
-            var loader = new MSBuildSolutionLoader(_logger, _console);
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -78,7 +81,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task LoadSolution_CppClrLibrary_Succeeds()
         {
-            var loader = new MSBuildSolutionLoader(_logger, _console);
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -96,10 +99,10 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task LoadSolution_CppClrLibrary_LoadsAllDocumentPaths()
         {
-            var loader = new MSBuildSolutionLoader(_logger, _console);
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
             string projectPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
-            var documents = new []
+            var documents = new[]
             {
                 "app.ico",
                 "app.rc",
@@ -124,7 +127,7 @@ namespace Arbiter.Tests.Integration
         public async Task LoadSolution_CombinedApp_Succeeds()
         {
             _locator.SetupCom();
-            var loader = new MSBuildSolutionLoader(_logger, _console);
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\SampleProjects.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -134,6 +137,18 @@ namespace Arbiter.Tests.Integration
 
             string warnings = RenderLogWarnings(InMemorySink.Instance.LogEvents);
             Assert.IsEmpty(warnings, "No warnings should be logged during load");
+        }
+
+        [Test]
+        public async Task LoadSolution_FormsAppWithCppReference_PopulatesCppProjectId()
+        {
+            var loader = new MSBuildSolutionLoader(_logger, _console, _fileSystem);
+            string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\FormsAppWithCppReference.sln");
+
+            await loader.LoadSolution(solutionPath, CancellationToken.None);
+
+            Assert.AreEqual(1, loader.CppProjects.Count, "Only one C++ project should be loaded");
+            Assert.AreEqual(Guid.Parse("a8d80d84-3f9e-4e8c-a193-c26f40aa94f5"), loader.CppProjects.Single().Id, "The C++ project id should match the id in the solution");
         }
 
         private static string RenderLogErrors(IEnumerable<LogEvent> events)

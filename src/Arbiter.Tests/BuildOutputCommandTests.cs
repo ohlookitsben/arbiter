@@ -44,13 +44,14 @@ namespace Arbiter.Tests.Unit
 
             _repositoryReader = new Mock<IRepositoryReader>();
             _analyzer = new Mock<IMSBuildSolutionAnalyzer>();
-            var container = ContainerHelper.ConfigureContainer();
-            var scope = container.BeginLifetimeScope(c =>
-            {
-                c.RegisterInstance<IFileSystem>(_fileSystem);
-                c.RegisterInstance(_repositoryReader.Object);
-                c.RegisterInstance(_analyzer.Object);
-            });
+            var container = ContainerHelper.ConfigureContainer()
+                .WithRegistrations(c =>
+                {
+                    c.RegisterInstance<IFileSystem>(_fileSystem);
+                    c.RegisterInstance(_repositoryReader.Object);
+                    c.RegisterInstance(_analyzer.Object);
+                })
+                .Build();
 
             _args = new string[]
             {
@@ -60,7 +61,7 @@ namespace Arbiter.Tests.Unit
                 "--nunit-project", @"C:\build\all.nunit",
                 "--nunit-configuration", "Default"
             };
-            _command = scope.Resolve<ArbiterRootCommand>();
+            _command = container.Resolve<ArbiterRootCommand>();
         }
 
         private void SetupValidRepositoryReader()

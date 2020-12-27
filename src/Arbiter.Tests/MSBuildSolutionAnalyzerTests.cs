@@ -17,7 +17,7 @@ namespace Arbiter.Tests.Integration
         [SetUp]
         public void SetUp()
         {
-            var container = ContainerHelper.ConfigureContainer();
+            var container = ContainerHelper.ConfigureContainer().Build();
             _analyzer = container.Resolve<MSBuildSolutionAnalyzer>();
         }
 

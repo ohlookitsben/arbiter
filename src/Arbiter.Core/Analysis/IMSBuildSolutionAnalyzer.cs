@@ -13,7 +13,12 @@ namespace Arbiter.Core.Analysis
         /// <returns>The absolute path to any project containing one of the <paramref name="files"/>.</returns>
         List<string> FindContainingProjects(IEnumerable<string> files);
 
+        /// <summary>
+        /// Find the projects that depend on the projects at the absolute paths <paramref name="projects"/>. This will traverse a simple
+        /// C# -> C++ dependency, but not C++ -> C++ dependency chains. C# -> C# dependency chains are supported.
+        /// </summary>
         List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects);
+
         List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects);
 
         /// <summary>

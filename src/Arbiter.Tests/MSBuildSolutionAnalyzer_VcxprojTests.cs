@@ -15,7 +15,7 @@ namespace Arbiter.Tests.Integration
     public class MSBuildSolutionAnalyzer_VcxprojTests
     {
         private MSBuildSolutionAnalyzer _analyzer;
-        private static readonly string VcxprojSolution = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
+        private static readonly string _vcxprojSolution = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
 
         [SetUp]
         public void SetUp()
@@ -25,14 +25,14 @@ namespace Arbiter.Tests.Integration
             locator.RegisterDefaults();
             locator.Clean();
 
-            var container = ContainerHelper.ConfigureContainer();
+            var container = ContainerHelper.ConfigureContainer().WithRealFileSystem().Build();
             _analyzer = container.Resolve<MSBuildSolutionAnalyzer>();
         }
 
         [Test]
         public async Task FindContainingProjects_ProjectFileIsChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(VcxprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_vcxprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
             var files = new List<string> { project };
@@ -46,7 +46,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_SourceFileIsChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(VcxprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_vcxprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
             string file = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.cpp");
@@ -61,7 +61,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_HeaderFileIsChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(VcxprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_vcxprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
             string file = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.h");
@@ -76,7 +76,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_MultipleSourceFilesAreChanged_ReturnsProject()
         {
-            await _analyzer.LoadSolution(VcxprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_vcxprojSolution, CancellationToken.None);
 
             string project = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
             string file1 = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.h");
@@ -92,7 +92,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task FindContainingProjects_FileNotInProjectChanged_DoesNotReturnProject()
         {
-            await _analyzer.LoadSolution(VcxprojSolution, CancellationToken.None);
+            await _analyzer.LoadSolution(_vcxprojSolution, CancellationToken.None);
 
             string doesntExist = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\FileDoesntExist.cs");
             var files = new List<string> { doesntExist };
