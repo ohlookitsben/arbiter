@@ -28,35 +28,70 @@ namespace Arbiter.MSBuild
             }
 
             var projects = new Dictionary<ProjectId, Project>();
+            var cppProjects = new Dictionary<Guid, CppProject>();
             foreach (string file in files)
             {
+                if (file == _loader.Solution.FilePath)
+                {
+                    // If the solution itself has changed, e.g. a project has been added or deleted, the handling we have for what
+                    // dependencies have changed doesn't provide very good guarantees - especially in the case that a project is
+                    // deleted from the solution file, but no other changes exist. Consider all projects modified in this case.
+                    projects = _loader.Solution.Projects.ToDictionary(p => p.Id, p => p);
+
+                    break;
+                }
+
                 foreach (var project in _loader.Solution.Projects)
                 {
+                    if (projects.ContainsKey(project.Id))
+                    {
+                        continue;
+                    }
+
                     // Track modfications to the project itself as changes. For projects not using wildcards for files this
                     // is enough to cover the case where a file is deleted. For any project with a wildcard, more sophisticated
                     // handling is needed.
                     if (file == project.FilePath)
                     {
                         projects.Add(project.Id, project);
-                    }
 
-                    // TODO: Handle C++ projects
-
-                    // TODO: Handle deletion in projects using wildcards.
-
-                    if (projects.ContainsKey(project.Id))
-                    {
                         continue;
                     }
+
+                    // TODO: Handle deletion in projects using wildcards.
 
                     if (project.Documents.Any(d => d.FilePath == file))
                     {
                         projects.Add(project.Id, project);
                     }
                 }
+
+                foreach (var project in _loader.CppProjects)
+                {
+                    if (cppProjects.ContainsKey(project.FakeId))
+                    {
+                        continue;
+                    }
+
+                    // Track modfications to the project itself as changes. C++ projects don't support wildcards so this is
+                    // sufficient to cover source files in the project being deleted.
+                    if (file == project.FilePath)
+                    {
+                        cppProjects.Add(project.FakeId, project);
+
+                        continue;
+                    }
+
+                    if (project.DocumentPaths.Any(d => d == file))
+                    {
+                        cppProjects.Add(project.FakeId, project);
+                    }
+                }
             }
 
-            return projects.Values.Select(p => p.FilePath).ToList();
+            return projects.Values.Select(p => p.FilePath)
+                .Concat(cppProjects.Values.Select(cp => cp.FilePath))
+                .ToList();
         }
 
         public List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects)
@@ -71,6 +106,8 @@ namespace Arbiter.MSBuild
             }
 
             FindDependentProjectsRecursively(graph, results, distance);
+
+            // TODO: Handle dependencies on C++ projects.
 
             return results.Values.ToList();
         }

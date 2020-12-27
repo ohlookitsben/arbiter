@@ -1,10 +1,13 @@
 ﻿using Arbiter.MSBuild;
+using Arbiter.Tests.Helpers;
 using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.InMemory;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.IO;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -18,6 +21,7 @@ namespace Arbiter.Tests.Integration
     {
         private ArbiterMSBuildLocator _locator;
         private ILogger _logger;
+        private IConsole _console;
 
         [SetUp]
         public void SetUp()
@@ -28,7 +32,7 @@ namespace Arbiter.Tests.Integration
                 .WriteTo.InMemory()
                 .MinimumLevel.Warning()
                 .CreateLogger();
-
+            _console = new TestConsole();
         }
 
         [TearDown]
@@ -44,7 +48,7 @@ namespace Arbiter.Tests.Integration
         public async Task LoadSolution_ProjectWithComReferences_Succeeds()
         {
             _locator.SetupCom();
-            var loader = new MSBuildSolutionLoader(_logger);
+            var loader = new MSBuildSolutionLoader(_logger, _console);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\ClassLibraryWithComReference\ClassLibraryWithComReference.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -59,7 +63,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task LoadSolution_StandaloneWindowsFormsApp_Succeeds()
         {
-            var loader = new MSBuildSolutionLoader(_logger);
+            var loader = new MSBuildSolutionLoader(_logger, _console);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\StandaloneFormsApp\StandaloneFormsApp.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -74,7 +78,7 @@ namespace Arbiter.Tests.Integration
         [Test]
         public async Task LoadSolution_CppClrLibrary_Succeeds()
         {
-            var loader = new MSBuildSolutionLoader(_logger);
+            var loader = new MSBuildSolutionLoader(_logger, _console);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
@@ -90,11 +94,37 @@ namespace Arbiter.Tests.Integration
         }
 
         [Test]
+        public async Task LoadSolution_CppClrLibrary_LoadsAllDocumentPaths()
+        {
+            var loader = new MSBuildSolutionLoader(_logger, _console);
+            string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.sln");
+            string projectPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary\CppClrLibrary.vcxproj");
+            var documents = new []
+            {
+                "app.ico",
+                "app.rc",
+                "AssemblyInfo.cpp",
+                "CppClrLibrary.cpp",
+                "CppClrLibrary.h",
+                "pch.cpp",
+                "pch.h",
+                "Resource.h"
+            };
+            var documentPaths = documents.Select(d => Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\CppClrLibrary", d));
+
+            await loader.LoadSolution(solutionPath, CancellationToken.None);
+
+            Assert.AreEqual(1, loader.CppProjects.Count, "A C++ project should be loaded.");
+            Assert.AreEqual(projectPath, loader.CppProjects.Single().FilePath);
+            CollectionAssert.AreEquivalent(documentPaths, loader.CppProjects.Single().DocumentPaths);
+        }
+
+        [Test]
         [Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied.")]
         public async Task LoadSolution_CombinedApp_Succeeds()
         {
             _locator.SetupCom();
-            var loader = new MSBuildSolutionLoader(_logger);
+            var loader = new MSBuildSolutionLoader(_logger, _console);
             string solutionPath = Path.Combine(TestContext.CurrentContext.TestDirectory, @"Data\SampleProjects\SampleProjects.sln");
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);

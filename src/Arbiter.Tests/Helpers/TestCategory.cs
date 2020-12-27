@@ -1,4 +1,4 @@
-﻿namespace Arbiter.Tests
+﻿namespace Arbiter.Tests.Helpers
 {
     /// <summary>
     /// The type of test determined by the type of resouces it depends on.

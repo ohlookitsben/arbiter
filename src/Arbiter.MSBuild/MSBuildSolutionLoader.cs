@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.MSBuild;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
+using System.CommandLine.IO;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -16,15 +18,20 @@ namespace Arbiter.MSBuild
     {
         private static readonly Regex _cppProjectExpression = new Regex(@"Cannot open project '(?<path>.*)' because the file extension '\.(?<extension>.*)' is not associated with a language.");
         private readonly ILogger _log;
+        private readonly IConsole _console;
         private Solution _solution;
         public Solution Solution => _solution ?? throw new InvalidOperationException($"Attempted access solution prior to calling {nameof(LoadSolution)}.");
+
+        private List<CppProject> _cppProjects = new List<CppProject>();
+        public List<CppProject> CppProjects => _solution != null ? _cppProjects : throw new InvalidOperationException($"Attempted access C++ projects prior to calling {nameof(LoadSolution)}.");
+
         private int _loadErrorCount;
         private int _loadWarningCount;
-        private List<CppProject> _cppProjects = new List<CppProject>();
 
-        public MSBuildSolutionLoader(ILogger log)
+        public MSBuildSolutionLoader(ILogger log, IConsole console)
         {
             _log = log;
+            _console = console;
         }
 
         public async Task LoadSolution(string solution, CancellationToken token)
@@ -49,17 +56,13 @@ namespace Arbiter.MSBuild
             switch (e.Operation)
             {
                 case ProjectLoadOperation.Evaluate:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 1/3)");
+                    _console.Out.Write($"Loading project {Path.GetFileName(e.FilePath)} .");
                     break;
                 case ProjectLoadOperation.Build:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 2/3)");
+                    _console.Out.Write(".");
                     break;
                 case ProjectLoadOperation.Resolve:
-                    Console.SetCursorPosition(0, Console.CursorTop);
-                    Console.Write($"Loading project {Path.GetFileName(e.FilePath)} (Stage 3/3)");
-                    Console.WriteLine();
+                    _console.Out.WriteLine(".");
                     break;
             }
         }
@@ -69,12 +72,15 @@ namespace Arbiter.MSBuild
             if (e.Diagnostic.Kind == WorkspaceDiagnosticKind.Failure && _cppProjectExpression.IsMatch(e.Diagnostic.Message))
             {
                 string path = _cppProjectExpression.Match(e.Diagnostic.Message).Groups["path"].Value;
-                _cppProjects.Add(new CppProject(path));
+                // Add via the private property since the solution is not yet loaded.
+                var project = new CppProject();
+                project.Load(path);
+                _cppProjects.Add(project);
                 _log.Warning($"C++ project found at {path}. Analysis results may be unreliable due to lack of Roslyn support for vcxproj analysis. Custom analysis will be performed for C++ changes.");
                 ++_loadWarningCount;
                 return;
             }
-
+            
             switch (e.Diagnostic.Kind)
             {
                 case WorkspaceDiagnosticKind.Failure:

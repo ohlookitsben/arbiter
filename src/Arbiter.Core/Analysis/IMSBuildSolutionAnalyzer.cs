@@ -7,7 +7,12 @@ namespace Arbiter.Core.Analysis
 {
     public interface IMSBuildSolutionAnalyzer
     {
+        /// <summary>
+        /// Find the projects containing the absolute paths <paramref name="files"/>.
+        /// </summary>
+        /// <returns>The absolute path to any project containing one of the <paramref name="files"/>.</returns>
         List<string> FindContainingProjects(IEnumerable<string> files);
+
         List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects);
         List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects);
 

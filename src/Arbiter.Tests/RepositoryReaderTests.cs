@@ -1,5 +1,6 @@
 ﻿using Arbiter.Core;
 using Arbiter.Tests.Fakes;
+using Arbiter.Tests.Helpers;
 using NUnit.Framework;
 using static Arbiter.Tests.Fakes.FakePowerShellInvoker;
 
