@@ -68,7 +68,7 @@ namespace Arbiter.MSBuild
 
                 foreach (var project in _loader.CppProjects)
                 {
-                    if (cppProjects.ContainsKey(project.FakeId))
+                    if (cppProjects.ContainsKey(project.Id))
                     {
                         continue;
                     }
@@ -77,14 +77,14 @@ namespace Arbiter.MSBuild
                     // sufficient to cover source files in the project being deleted.
                     if (file == project.FilePath)
                     {
-                        cppProjects.Add(project.FakeId, project);
+                        cppProjects.Add(project.Id, project);
 
                         continue;
                     }
 
                     if (project.DocumentPaths.Any(d => d == file))
                     {
-                        cppProjects.Add(project.FakeId, project);
+                        cppProjects.Add(project.Id, project);
                     }
                 }
             }
@@ -98,11 +98,35 @@ namespace Arbiter.MSBuild
         {
             var graph = _loader.Solution.GetProjectDependencyGraph();
             var results = new Dictionary<ProjectId, AnalysisResult>();
+            var cppResults = new Dictionary<Guid, AnalysisResult>();
             int distance = 0;
             foreach (string project in projects)
             {
                 var projectObj = _loader.Solution.Projects.SingleOrDefault(p => p.FilePath == project);
-                results.Add(projectObj.Id, CreateAnalysisResult(projectObj, distance));
+                if (projectObj != null)
+                {
+                    results.Add(projectObj.Id, CreateAnalysisResult(projectObj, distance));
+
+                    continue;
+                }
+
+                // This may be a C++ project. Search for it there before failing.
+                var cppProject = _loader.CppProjects.SingleOrDefault(p => p.FilePath == project);
+                if (cppProject == null)
+                {
+                    throw new ArgumentException($"No project found in the solution at: {project}");
+                }
+
+                cppResults.Add(cppProject.Id, CreateAnalysisResult(cppProject, distance));
+
+                // Since Roslyn can't analyze C++ projects, search manually through their referenced assemblies.
+                foreach (var csProject in _loader.Solution.Projects)
+                {
+                    if (ProjectReferencesProject(csProject, cppProject))
+                    {
+                        results.Add(csProject.Id, CreateAnalysisResult(csProject, distance + 1));
+                    }
+                }
             }
 
             FindDependentProjectsRecursively(graph, results, distance);
@@ -176,14 +200,15 @@ namespace Arbiter.MSBuild
         /// </remarks>
         private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
 
+        private AnalysisResult CreateAnalysisResult(CppProject cppProject, int distance) => new AnalysisResult(cppProject.Name, cppProject.FilePath, distance, $"{cppProject.AssemblyName}.dll");
+
         public List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects)
         {
             var testProjects = new List<AnalysisResult>();
             foreach (var project in dependentProjects)
             {
                 var projectObj = _loader.Solution.Projects.Single(p => p.FilePath == project.FilePath);
-                var referencedAssemblies = projectObj.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
-                bool isTestAssembly = referencedAssemblies.Any(r => Path.GetFileName(r.Display) == "nunit.framework.dll");
+                bool isTestAssembly = ProjectReferencesAssembly(projectObj, "nunit.framework.dll");
                 if (isTestAssembly)
                 {
                     testProjects.Add(project);
@@ -191,6 +216,19 @@ namespace Arbiter.MSBuild
             }
 
             return testProjects;
+        }
+
+        private static bool ProjectReferencesAssembly(Project project, string assembly)
+        {
+            var referencedAssemblies = project.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Assembly);
+            return referencedAssemblies.Any(r => Path.GetFileName(r.Display) == assembly);
+        }
+
+        private static bool ProjectReferencesProject(Project project, CppProject cppProject)
+        {
+            var referencedProjects = project.AllProjectReferences.Select(p => p.ProjectId);
+            var referencedAssemblies = project.MetadataReferences.Where(r => r.Properties.Kind == MetadataImageKind.Module);
+            return referencedAssemblies.Any(r => Path.GetFileName(r.Display) == cppProject.Name);
         }
 
         public Task LoadSolution(string fullName, CancellationToken token) => _loader.LoadSolution(fullName, token);

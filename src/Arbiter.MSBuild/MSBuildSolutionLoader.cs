@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.IO;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +44,11 @@ namespace Arbiter.MSBuild
 
             Console.WriteLine();
             _solution = await workspace.OpenSolutionAsync(solution, progress, token);
+
+            if (CppProjects.Any())
+            {
+                // Try to populate the real ids for C++ projects from the 
+            }
 
             Console.WriteLine();
             Console.WriteLine($"Solution opened with {_loadWarningCount} warnings and {_loadErrorCount} errors. See {Constants.LogFile} for more information.");
