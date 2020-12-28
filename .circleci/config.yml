@@ -16,7 +16,7 @@ jobs:
           command: dotnet test -c Release --no-restore
       - run: 
           name: Publish
-          command: dotnet publish -c Release -o publish --no-restore
+          command: dotnet publish .\src\Arbiter\Arbiter.csproj -c Release -o publish --no-restore
       - persist_to_workspace:
           root: .\publish
           paths:
