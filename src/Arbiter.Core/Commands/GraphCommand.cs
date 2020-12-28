@@ -35,7 +35,7 @@ namespace Arbiter.Core.Commands
 
             var graph = _analyzer.GetGraph();
 
-            string graphString = $"digraph G {{{Environment.NewLine}" + string.Join(Environment.NewLine, graph.Where(g => g.Item2.Any()).Select(g => $"  \"{g.Item1.Project}\" -> {{ {string.Join(" ", g.Item2.Select(i => $"\"{i.Project}\""))} }}")) + $"{Environment.NewLine}}}";
+            string graphString = $"digraph G {{{Environment.NewLine}" + string.Join(Environment.NewLine, graph.Where(g => g.Item2.Any()).OrderBy(g => g.Item1.Project).Select(g => $"  \"{g.Item1.Project}\" -> {{ {string.Join(" ", g.Item2.OrderBy(i => i.Project).Select(i => $"\"{i.Project}\""))} }}")) + $"{Environment.NewLine}}}";
             _console.Out.WriteLine(graphString);
 
             return 0;
