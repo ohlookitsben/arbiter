@@ -5,8 +5,8 @@ Only run the tests you need based on the changes between builds.
 ## Getting Started
 
 When run against an MSBuild solution file, and provided with a range of commits
-to check and an ouput file, Arbiter will produce an [NUnit](https://nunit.org/)
-project file that can be passed to nunit to execute.
+to check and an ouput file, Arbiter will produce an list of test assembly names
+that can be passed to a test runner to execute.
 
 ```
 Usage:
