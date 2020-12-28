@@ -92,7 +92,7 @@ namespace Arbiter.Tests.Integration
             string warnings = RenderLogWarnings(InMemorySink.Instance.LogEvents);
             Assert.That(warnings,
                 Does.StartWith("C++ project found").And
-                    .EndsWith($"Custom analysis will be performed for C++ changes.{Environment.NewLine}"),
+                    .EndsWith($"Custom analysis will be performed for C++ changes{Environment.NewLine}"),
                 "A single C++ warning should be logged during load");
         }
 
