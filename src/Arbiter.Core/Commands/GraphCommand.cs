@@ -25,7 +25,7 @@ namespace Arbiter.Core.Commands
             Handler = CommandHandler.Create<FileInfo, bool, CancellationToken>(ExecuteHandler);
         }
 
-        //https://dreampuf.github.io/GraphvizOnline
+        // Graph Viewer: https://dreampuf.github.io/GraphvizOnline
         public async Task<int> ExecuteHandler(FileInfo solution, bool verbose, CancellationToken token)
         {
             Globals.Verbose = verbose;

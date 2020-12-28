@@ -2,7 +2,7 @@
 
 namespace Arbiter.Core
 {
-    public static class IStandardStreamWriterExtensions
+    public static class StandardStreamWriterExtensions
     {
         public static void VerboseWrite(this IStandardStreamWriter writer, string value = "")
         {

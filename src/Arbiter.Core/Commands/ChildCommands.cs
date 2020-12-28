@@ -4,12 +4,12 @@
     {
         public DiffCommand Diff { get; }
         public SetupComCommand SetupCom { get; }
-        public CleanComCommand CleanCom { get; }
+        public CleanCommand CleanCom { get; }
         public SortCommand Sort { get; }
         public GraphCommand Graph { get; }
         public AnalyzeCommand Analyze { get; }
 
-        public ChildCommands(DiffCommand diff, SetupComCommand setupCom, CleanComCommand cleanCom, SortCommand sort, GraphCommand graph, AnalyzeCommand analyze)
+        public ChildCommands(DiffCommand diff, SetupComCommand setupCom, CleanCommand cleanCom, SortCommand sort, GraphCommand graph, AnalyzeCommand analyze)
         {
             Diff = diff;
             SetupCom = setupCom;

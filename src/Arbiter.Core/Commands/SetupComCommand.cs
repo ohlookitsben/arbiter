@@ -19,7 +19,7 @@ namespace Arbiter.Core.Commands
         {
             Globals.Verbose = verbose;
 
-            _locator.Clean();
+            _locator.SetupCom();
 
             return 0;
         }

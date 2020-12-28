@@ -43,5 +43,11 @@ namespace Arbiter.Tests.Integration
                 Directory.Delete(workingDirectory.FullName);
             }
         }
+
+        [Test]
+        public void Invoke_WorkingDirectoryDoesNotExist_Throws()
+        {
+            Assert.Throws<InvalidOperationException>(() => new PowerShellInvoker(Guid.NewGuid().ToString()).Invoke("$PSVersionTable"));
+        }
     }
 }

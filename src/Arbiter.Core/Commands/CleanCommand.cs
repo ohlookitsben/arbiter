@@ -4,11 +4,11 @@ using System.CommandLine.Invocation;
 
 namespace Arbiter.Core.Commands
 {
-    public class CleanComCommand : Command
+    public class CleanCommand : Command
     {
         private readonly IMSBuildLocator _locator;
 
-        public CleanComCommand(IMSBuildLocator locator) : base("clean", "Return to a clean state without support for additional project types")
+        public CleanCommand(IMSBuildLocator locator) : base("clean", "Return to a clean state without support for additional project types")
         {
             _locator = locator;
 
@@ -19,7 +19,7 @@ namespace Arbiter.Core.Commands
         {
             Globals.Verbose = verbose;
 
-            _locator.SetupCom();
+            _locator.Clean();
 
             return 0;
         }
