@@ -40,7 +40,7 @@ jobs:
                 -r ${CIRCLE_PROJECT_REPONAME} 
                 -c ${CIRCLE_SHA1} 
                 -delete ${VERSION} 
-                ./arbiter.zip
+                ${CIRCLE_TAG} ./arbiter.zip
 workflows:
   version: 2
   main:
