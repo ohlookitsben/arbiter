@@ -30,9 +30,7 @@ jobs:
           at: .
       - run: 
           name: Build release package
-          command: >
-            $ProgressPreference = "SilentlyContinue"; 
-            Compress-Archive -LiteralPath . -DestinationPath ./arbiter.zip
+          command: zip -r -q arbiter *.dll *.pdb *.exe *.exe.config *.props *.targets
       - run:
           name: Push to GitHub Releases
           command: > 
