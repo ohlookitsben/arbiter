@@ -35,7 +35,7 @@ namespace Arbiter.Tests.Integration
             {
                 var result = _invoker.Invoke("Get-Location");
 
-                Assert.AreEqual(1, result.Count, "Get-Location should return a single result.");
+                Assert.AreEqual(1, result.Count, "Get-Location should return a single result");
                 Assert.AreEqual(workingDirectory.FullName, result.Single().BaseObject.ToString());
             }
             finally

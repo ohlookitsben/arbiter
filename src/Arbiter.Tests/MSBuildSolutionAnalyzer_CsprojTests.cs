@@ -39,8 +39,8 @@ namespace Arbiter.Tests.Integration
 
             var result = _analyzer.FindContainingProjects(files);
 
-            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project.");
-            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in.");
+            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project");
+            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in");
         }
 
         [Test]
@@ -54,8 +54,8 @@ namespace Arbiter.Tests.Integration
 
             var result = _analyzer.FindContainingProjects(files);
 
-            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project.");
-            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in.");
+            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project");
+            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in");
         }
 
         [Test]
@@ -70,8 +70,8 @@ namespace Arbiter.Tests.Integration
 
             var result = _analyzer.FindContainingProjects(files);
 
-            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project.");
-            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in.");
+            Assert.AreEqual(result.Count, 1, "There should be exactly 1 changed project");
+            Assert.AreEqual(project, result.Single(), "The changed project should match the file passed in");
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace Arbiter.Tests.Integration
 
             var result = _analyzer.FindContainingProjects(files);
 
-            Assert.IsEmpty(result, "The project should not be changed since the file asw not part of the project.");
+            Assert.IsEmpty(result, "The project should not be changed since the file asw not part of the project");
         }
     }
 }

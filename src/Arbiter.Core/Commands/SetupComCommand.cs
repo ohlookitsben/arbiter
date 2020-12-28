@@ -6,9 +6,22 @@ namespace Arbiter.Core.Commands
 {
     public class SetupComCommand : Command
     {
-        public SetupComCommand(IMSBuildLocator locator) : base("setup-com", "Setup support for projects with COM references.")
+        private readonly IMSBuildLocator _locator;
+
+        public SetupComCommand(IMSBuildLocator locator) : base("setup-com", "Setup support for projects with COM references")
         {
-            Handler = CommandHandler.Create(locator.SetupCom);
+            _locator = locator;
+
+            Handler = CommandHandler.Create<bool>(ExecuteHandler);
+        }
+
+        public int ExecuteHandler(bool verbose)
+        {
+            Globals.Verbose = verbose;
+
+            _locator.Clean();
+
+            return 0;
         }
     }
 }

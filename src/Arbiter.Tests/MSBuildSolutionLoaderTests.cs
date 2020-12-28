@@ -47,7 +47,7 @@ namespace Arbiter.Tests.Integration
         }
 
         [Test]
-        [Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied.")]
+        [Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied")]
         public async Task LoadSolution_ProjectWithComReferences_Succeeds()
         {
             _locator.SetupCom();
@@ -93,7 +93,7 @@ namespace Arbiter.Tests.Integration
             Assert.That(warnings,
                 Does.StartWith("C++ project found").And
                     .EndsWith($"Custom analysis will be performed for C++ changes.{Environment.NewLine}"),
-                "A single C++ warning should be logged during load.");
+                "A single C++ warning should be logged during load");
         }
 
         [Test]
@@ -117,13 +117,13 @@ namespace Arbiter.Tests.Integration
 
             await loader.LoadSolution(solutionPath, CancellationToken.None);
 
-            Assert.AreEqual(1, loader.CppProjects.Count, "A C++ project should be loaded.");
+            Assert.AreEqual(1, loader.CppProjects.Count, "A C++ project should be loaded");
             Assert.AreEqual(projectPath, loader.CppProjects.Single().FilePath);
             CollectionAssert.AreEquivalent(documentPaths, loader.CppProjects.Single().DocumentPaths);
         }
 
         [Test]
-        [Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied.")]
+        [Explicit("SetupCom doesn't work here because testhost.net48.x86.exe can't find the assemblies we've copied")]
         public async Task LoadSolution_CombinedApp_Succeeds()
         {
             _locator.SetupCom();

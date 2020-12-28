@@ -169,7 +169,7 @@ namespace Arbiter.MSBuild
         {
             if (distance > _distanceHardLimit)
             {
-                throw new InvalidOperationException($"Project recursion depth exceeded hard limit of {_distanceHardLimit}.");
+                throw new InvalidOperationException($"Project recursion depth exceeded hard limit of {_distanceHardLimit}");
             }
 
             ++distance;
@@ -198,7 +198,11 @@ namespace Arbiter.MSBuild
         /// Can't use project.OutputPath because it will not necessarily be the final output path. E.g. On projects without an explicit setting this is currently
         /// evaluating to $(ProjectDir)/bin/Debug/net48/AssemblyName.dll. Might be related to https://github.com/dotnet/roslyn/issues/12562.
         /// </remarks>
-        private static AnalysisResult CreateAnalysisResult(Project project, int distance) => new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.dll");
+        private static AnalysisResult CreateAnalysisResult(Project project, int distance)
+        {
+            string extension = project.OutputFilePath.Split('.').Last();
+            return new AnalysisResult(project.Name, project.FilePath, distance, $"{project.AssemblyName}.{extension}");
+        }
 
         private static AnalysisResult CreateAnalysisResult(CppProject cppProject, int distance) => new AnalysisResult(cppProject.Name, cppProject.FilePath, distance, $"{cppProject.AssemblyName}.dll");
 

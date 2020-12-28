@@ -29,7 +29,7 @@ namespace Arbiter.Core.Commands
             var changedFiles = _repositoryReader.ListChangedFiles(fromCommit, toCommit);
             Result.AddRange(changedFiles);
 
-            if (!suppressOutput)
+            if (!suppressOutput || Globals.Verbose)
             {
                 _console.Out.WriteLine(string.Join(Environment.NewLine, changedFiles));
             }

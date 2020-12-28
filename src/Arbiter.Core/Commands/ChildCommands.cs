@@ -7,14 +7,16 @@
         public CleanComCommand CleanCom { get; }
         public SortCommand Sort { get; }
         public GraphCommand Graph { get; }
+        public AnalyzeCommand Analyze { get; }
 
-        public ChildCommands(DiffCommand diff, SetupComCommand setupCom, CleanComCommand cleanCom, SortCommand sort, GraphCommand graph)
+        public ChildCommands(DiffCommand diff, SetupComCommand setupCom, CleanComCommand cleanCom, SortCommand sort, GraphCommand graph, AnalyzeCommand analyze)
         {
             Diff = diff;
             SetupCom = setupCom;
             CleanCom = cleanCom;
             Sort = sort;
             Graph = graph;
+            Analyze = analyze;
         }
     }
 }

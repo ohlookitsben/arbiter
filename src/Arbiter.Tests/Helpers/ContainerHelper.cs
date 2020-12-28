@@ -30,7 +30,7 @@ namespace Arbiter.Tests.Helpers
                 .PublicOnly().Where(t => t.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Any())
                 .AsSelf().AsImplementedInterfaces(); _builder.RegisterInstance(new Mock<ILogger>().Object);
 
-            _builder.RegisterType<TestConsole>().As<IConsole>();
+            _builder.RegisterType<TestConsole>().As<IConsole>().SingleInstance();
             _builder.RegisterType<MockFileSystem>().As<IFileSystem>();
         }
 

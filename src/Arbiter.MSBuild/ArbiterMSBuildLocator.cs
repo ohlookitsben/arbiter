@@ -40,7 +40,7 @@ namespace Arbiter.MSBuild
         {
             if (_registeredInstance == null)
             {
-                throw new InvalidOperationException("Cannot copy assemblies until the MSBuild instance has been registered.");
+                throw new InvalidOperationException("Cannot copy assemblies until the MSBuild instance has been registered");
             }
 
             var assemblyPaths = _comResolutionAssemblies.Select(a => Path.Combine(_registeredInstance.MSBuildPath, a));
@@ -70,7 +70,7 @@ namespace Arbiter.MSBuild
         {
             if (_registeredInstance == null)
             {
-                throw new InvalidOperationException("Cannot clean assemblies until the MSBuild instance has been registered.");
+                throw new InvalidOperationException("Cannot clean assemblies until the MSBuild instance has been registered");
             }
 
             var assemblyPaths = _comResolutionAssemblies.Select(a => Path.Combine(_registeredInstance.MSBuildPath, a));

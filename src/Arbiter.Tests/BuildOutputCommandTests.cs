@@ -24,22 +24,14 @@ namespace Arbiter.Tests.Unit
         private Mock<IMSBuildSolutionAnalyzer> _analyzer;
         private string[] _args;
         private ArbiterRootCommand _command;
+        private IConsole _console;
 
         [SetUp]
         public void SetUp()
         {
             _fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
             {
-                { @"C:\build\MySolution.sln", new MockFileData(string.Empty) },
-                { @"C:\build\all.nunit", new MockFileData(@"
-<NUnitProject>
-    <Settings activeConfig=""Default"" />
-    <Config name=""Default"">
-        <assembly path=""SomeOtherProject.Tests\bin\Debug\SomeOtherProject.Tests.dll"" />
-        <assembly path=""SomeProject.Tests\bin\Debug\SomeProject.Tests.dll"" />
-    </Config>
-</NUnitProject>
-") }
+                { @"C:\build\MySolution.sln", new MockFileData(string.Empty) }
             });
 
             _repositoryReader = new Mock<IRepositoryReader>();
@@ -56,12 +48,10 @@ namespace Arbiter.Tests.Unit
             _args = new string[]
             {
                 "--solution", @"C:\build\MySolution.sln",
-                "--from-commit", "commit",
-                "--to-commit", "other_commit",
-                "--nunit-project", @"C:\build\all.nunit",
-                "--nunit-configuration", "Default"
+                "--from-commit", "commit"
             };
             _command = container.Resolve<ArbiterRootCommand>();
+            _console = container.Resolve<IConsole>();
         }
 
         private void SetupValidRepositoryReader()
@@ -109,18 +99,11 @@ namespace Arbiter.Tests.Unit
             };
             _analyzer.Setup(a => a.ExcludeNonTestProjects(It.IsAny<IEnumerable<AnalysisResult>>())).Returns(dependentTestProjects);
 
-            var console = new TestConsole();
-            int result = _command.InvokeAsync(_args, console).Result;
+            int result = _command.InvokeAsync(_args).Result;
+            string consoleOutput = _console.Out.ToString();
 
-            Assert.AreEqual(0, result, "Command should execute successfully. Console contents:{0}{1}", Environment.NewLine, console.ToString());
-
-            var document = new XmlDocument();
-            string fileContents = _fileSystem.File.ReadAllText(@"C:\build\arbiter.nunit");
-            document.LoadXml(fileContents);
-
-            var assemblyNode = document.SelectSingleNode("//assembly");
-            string assemblyPath = assemblyNode.Attributes["path"].Value;
-            Assert.AreEqual(@"SomeProject.Tests\bin\Debug\SomeProject.Tests.dll", assemblyPath);
+            Assert.AreEqual(0, result, "Command should execute successfully. Console contents:{0}{1}", Environment.NewLine, consoleOutput);
+            Assert.That(consoleOutput, Does.Contain("SomeProject.Tests.dll").And.Not.Contains("SomeProject.dll"));
         }
     }
 }

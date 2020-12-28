@@ -13,7 +13,7 @@ namespace Arbiter.MSBuild
         /// The project id in the solution file.
         /// </summary>
         /// <exception cref="InvalidOperationException">The id has not been set yet.</exception>
-        public Guid Id => _id ?? throw new InvalidOperationException("Id has not been set. Call SetId before attempting to access the project id.");
+        public Guid Id => _id ?? throw new InvalidOperationException("Id has not been set. Call SetId before attempting to access the project id");
 
         public string FilePath { get; private set; } = string.Empty;
 

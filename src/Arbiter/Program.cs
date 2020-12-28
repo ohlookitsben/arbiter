@@ -1,4 +1,5 @@
 ﻿using Arbiter.Core;
+using Arbiter.Core.Analysis;
 using Arbiter.MSBuild;
 using Autofac;
 using AutofacSerilogIntegration;
@@ -57,15 +58,18 @@ namespace Arbiter
 
             builder.RegisterLogger();
 
-            // Setup a real console for System.CommandLine to use.
+            // Setup a real console for System.CommandLine to use
             builder.RegisterType<SystemConsole>().As<IConsole>();
 
-            // Setup a real FileSystem for System.IO.Abstractions to use.
+            // Setup a real FileSystem for System.IO.Abstractions to use
             builder.RegisterType<FileSystem>().As<IFileSystem>();
 
-            // Store the working directory and ensure PowerShell calls run in it.
+            // Store the working directory and ensure PowerShell calls run in it
             string workingDirectory = Directory.GetCurrentDirectory();
             builder.RegisterType<PowerShellInvoker>().As<IPowerShellInvoker>().WithParameter(new TypedParameter(typeof(string), workingDirectory));
+
+            // Share the analyzer between commands
+            builder.RegisterType<MSBuildSolutionAnalyzer>().As<IMSBuildSolutionAnalyzer>().AsSelf().SingleInstance();
 
             var container = builder.Build();
             return container.Resolve<Program>();
@@ -86,7 +90,7 @@ namespace Arbiter
             }
             catch (Exception e)
             {
-                _console.Error.WriteLine($"A {e.GetType().Name} occurred during processing. See the log file {Constants.LogFile} for details.");
+                _console.Error.WriteLine($"A {e.GetType().Name} occurred during processing. See the log file {Constants.LogFile} for details");
                 _log.Error(e.ToString());
 
                 return -1;

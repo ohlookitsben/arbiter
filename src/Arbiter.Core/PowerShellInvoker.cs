@@ -19,7 +19,7 @@ namespace Arbiter.Core
         {
             if (!Directory.Exists(WorkingDirectory))
             {
-                throw new InvalidOperationException("A working directory must be set before invoking scripts.");
+                throw new InvalidOperationException("A working directory must be set before invoking scripts");
             }
 
             using var powershell = PowerShell.Create();

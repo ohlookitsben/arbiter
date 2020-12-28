@@ -49,11 +49,11 @@ namespace Arbiter.Tests.Unit
             document.LoadXml(fileContents);
 
             var root = document.SelectNodes("/NUnitProject");
-            Assert.AreEqual(1, root.Count, "The project should have an NUnitProject node at the root.");
+            Assert.AreEqual(1, root.Count, "The project should have an NUnitProject node at the root");
             var settings = document.SelectNodes("/NUnitProject/Settings");
-            Assert.AreEqual(1, settings.Count, "The project should have a Settings node under the NUnitProject node.");
+            Assert.AreEqual(1, settings.Count, "The project should have a Settings node under the NUnitProject node");
             var config = document.SelectNodes("/NUnitProject/Config");
-            Assert.AreEqual(1, config.Count, "The project should have a Config node under the NUnitProject node.");
+            Assert.AreEqual(1, config.Count, "The project should have a Config node under the NUnitProject node");
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace Arbiter.Tests.Unit
             var activeConfig = settings.Attributes["activeConfig"];
             var config = document.SelectSingleNode("//Config");
             var configName = config.Attributes["name"];
-            Assert.AreEqual(activeConfig.Value, configName.Value, "The active config and config name should match.");
+            Assert.AreEqual(activeConfig.Value, configName.Value, "The active config and config name should match");
         }
 
         [Test]

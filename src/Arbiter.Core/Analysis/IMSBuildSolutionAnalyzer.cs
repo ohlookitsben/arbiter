@@ -19,6 +19,9 @@ namespace Arbiter.Core.Analysis
         /// </summary>
         List<AnalysisResult> FindDependentProjects(IEnumerable<string> projects);
 
+        /// <summary>
+        /// Exclude any projects from the <see cref="AnalysisResult"/>s that don't reference the test framework nunit.framework.dll.
+        /// </summary>
         List<AnalysisResult> ExcludeNonTestProjects(IEnumerable<AnalysisResult> dependentProjects);
 
         /// <summary>
