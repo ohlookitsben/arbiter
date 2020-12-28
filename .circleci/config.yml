@@ -33,9 +33,7 @@ jobs:
           command: zip -r -q arbiter *.dll *.pdb *.exe *.exe.config *.props *.targets
       - run:
           name: Push to GitHub Releases
-          command: |
-            VERSION=${CIRCLE_TAG}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ${CIRCLE_TAG} ./arbiter.zip
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${CIRCLE_TAG} ./arbiter.zip
 workflows:
   version: 2
   main:
