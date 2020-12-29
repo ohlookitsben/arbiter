@@ -27,12 +27,17 @@ namespace Arbiter.Core.Commands
             _console = console;
             _diff = diff;
 
-            Handler = CommandHandler.Create<FileInfo, string, bool, CancellationToken>((solution, fromCommit, verbose, token) => ExecuteHandler(solution, fromCommit, verbose, token));
+            AddOption(CommonOptions.Solution);
+            AddOption(CommonOptions.FromCommit);
+            AddOption(CommonOptions.Distance);
+
+            Handler = CommandHandler.Create<FileInfo, string, bool, bool, CancellationToken>((solution, fromCommit, verbose, distance, token) => ExecuteHandler(solution, fromCommit, verbose, distance, token));
         }
 
-        public async Task<int> ExecuteHandler(FileInfo solution, string fromCommit, bool verbose, CancellationToken token, bool suppressOutput = false)
+        public async Task<int> ExecuteHandler(FileInfo solution, string fromCommit, bool verbose, bool distance, CancellationToken token, bool suppressOutput = false)
         {
             Globals.Verbose = verbose;
+            Globals.PrintDistance = distance;
 
             // Always process changes relative to the HEAD. Any other commit would require checking that version out to read the solution.
             string toCommit = "HEAD";
@@ -89,6 +94,11 @@ namespace Arbiter.Core.Commands
             {
                 foreach (var dependentProject in dependentProjects)
                 {
+                    if (Globals.PrintDistance)
+                    {
+                        _console.Out.Write($"{dependentProject.Distance}\t");
+                    }
+
                     _console.Out.WriteLine(dependentProject.Assembly);
                 }
             }
