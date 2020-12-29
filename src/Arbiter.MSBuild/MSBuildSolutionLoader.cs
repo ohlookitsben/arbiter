@@ -100,7 +100,16 @@ namespace Arbiter.MSBuild
                 var project = new CppProject();
                 project.Load(path);
                 var solutionProject = _solutionProjects.SingleOrDefault(p => p.FilePath.Equals(project.FilePath, StringComparison.OrdinalIgnoreCase));
-                project.SetId(solutionProject.Id);
+                if (solutionProject == null)
+                {
+                    _log.Warning($"Failed to locate C++ project ${project.FilePath} in solution. Project id will be invalid for this project.");
+                    project.SetId(Guid.NewGuid());
+                }
+                else
+                {
+                    project.SetId(solutionProject.Id);
+                }
+
                 // Add the project via the private property since the solution is not yet loaded.
                 _cppProjects.Add(project);
                 _log.Warning($"C++ project found at {path}. Analysis results may be unreliable due to lack of Roslyn support for vcxproj analysis. Custom analysis will be performed for C++ changes");
