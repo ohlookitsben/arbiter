@@ -224,6 +224,7 @@ namespace Arbiter.MSBuild
 
         private static bool ProjectReferencesAssembly(Project project, string assembly)
         {
+            // TODO: This is not a reliable way of determining if an assembly is a test assembly. Come up with something better.
             var referencedAssemblies = project.MetadataReferences.Where(m => m.Properties.Kind == MetadataImageKind.Assembly);
             return referencedAssemblies.Any(a => Path.GetFileName(a.Display) == assembly);
         }
